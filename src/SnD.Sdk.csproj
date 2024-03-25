@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>SnD.Sdk</RootNamespace>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Akka" Version="1.5.18" />
+        <PackageReference Include="Akka.Hosting" Version="1.5.18" />
+        <PackageReference Include="Akka.Logger.Serilog" Version="1.5.12.1" />
+        <PackageReference Include="Akka.Streams" Version="1.5.18" />
+        <PackageReference Include="Akka.Streams.Azure.StorageQueue" Version="1.5.15" />
+        <PackageReference Include="Apache.Avro" Version="1.11.3" />
+        <PackageReference Include="AWSSDK.S3" Version="3.7.305.30" />
+        <PackageReference Include="Azure.Data.Tables" Version="12.8.3" />
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+        <PackageReference Include="Azure.Storage.Files.Shares" Version="12.17.1" />
+        <PackageReference Include="Azure.Storage.Queues" Version="12.17.1" />
+        <PackageReference Include="CassandraCSharpDriver" Version="3.20.1" />
+        <PackageReference Include="CassandraCSharpDriver.AppMetrics" Version="3.20.1" />
+        <PackageReference Include="DogStatsD-CSharp-Client" Version="8.0.0" />
+        <PackageReference Include="KubernetesClient" Version="13.0.26" />
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+        <PackageReference Include="Polly" Version="7.2.4" />
+        <PackageReference Include="Pulsar.Client" Version="2.12.1" />
+        <PackageReference Include="Serilog" Version="3.1.1" />
+        <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+        <PackageReference Include="Serilog.Sinks.Datadog.Logs" Version="0.5.2" />
+        <PackageReference Include="System.Memory.Data" Version="6.0.0" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <PackageId>SnD.Sdk</PackageId>
+        <Version>0.0.0</Version>
+        <Authors>@SneaksAndData/platform-engineering</Authors>
+        <Company>Sneaks and Data</Company>
+        <PackageDescription>C# SDK for SnD OSS Projects</PackageDescription>
+        <RepositoryUrl>https://github.com/SneaksAndData/esd-services-sdk</RepositoryUrl>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+</Project>
