@@ -28,7 +28,7 @@ jobs:
         working-directory: ./test
         run: |
           dotnet add package coverlet.msbuild &&
-          dotnet test ProteusTests.csproj --configuration Debug --runtime linux-x64 /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=lcov --logger GitHubActions
+          dotnet test Snd.Sdk.Tests.csproj --configuration Debug --runtime linux-x64 /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=lcov --logger GitHubActions
       - name: Publish Code Coverage
         if: ${{ github.event_name == 'pull_request' && always() }}
         uses: romeovs/lcov-reporter-action@v0.2.16
