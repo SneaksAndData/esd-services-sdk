@@ -1,0 +1,37 @@
+name: Run tests with coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate_commit:
+    name: Validate Code, Style and Publish Coverage
+    runs-on: ubuntu-latest
+    if: ${{ github.ref != 'refs/heads/main' }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Check style
+        run: dotnet format --verify-no-changes
+      - name: Test
+        working-directory: ./test
+        run: |
+          dotnet add package coverlet.msbuild &&
+          dotnet test ProteusTests.csproj --configuration Debug --runtime linux-x64 /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=lcov --logger GitHubActions
+      - name: Publish Code Coverage
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        uses: romeovs/lcov-reporter-action@v0.2.16
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./test/Coverage/coverage.info

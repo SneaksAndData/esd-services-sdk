@@ -1,0 +1,55 @@
+name: Publish to Nuget.org package feed
+run-name: Publish ${{github.ref_name}} by @${{ github.actor }}
+
+on: workflow_dispatch
+
+jobs:
+  release_to_nuget:
+    name: Release distribution to Nuget (public feed)
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3.0.3
+        with:
+          dotnet-version: 6.0.x          
+      - name: Set Package Version
+        run: |
+          set -e
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk/SnD.Sdk.csproj
+      - name: Import Secrets
+        uses: hashicorp/vault-action@v2.7.3
+        with:
+          url: https://hashicorp-vault.production.sneaksanddata.com/
+          role: github
+          method: jwt
+          secrets: |
+            /secret/data/common/code_signing_certificates certificate_p12 | CERT ;
+            /secret/data/common/nuget_publish api_key | API_KEY ;
+      - name: Build NuGet for SnD.Sdk
+        working-directory: ./src/SnD.Sdk
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          dotnet pack --configuration Release SnD.Sdk.csproj
+          
+          echo "$CERT" | base64 --decode > cert.p12
+          
+          dotnet nuget sign "bin/Release/SnD.Sdk.$version.nupkg"  \
+            --certificate-path cert.p12 \
+            --timestamper http://timestamp.digicert.com
+          
+          dotnet nuget push "bin/Release/SnD.Sdk.$version.nupkg" --api-key "$API_KEY" \
+            --source  https://api.nuget.org/v3/index.json
+          
+          rm cert.p12

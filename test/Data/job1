@@ -1,0 +1,87 @@
+﻿{
+	"apiVersion": "batch/v1",
+	"kind": "Job",
+	"metadata": {
+		"name": "0117c233-4614-455f-8fe8-4e55166ffc60",
+		"labels": {
+			"app.kubernetes.io/component": "unittest",
+			"app.kubernetes.io/instance": "algorithm"
+		}
+	},
+	"spec": {
+		"activeDeadlineSeconds": 900,
+		"backoffLimit": 10,
+		"template": {
+			"metadata": {
+				"name": "0117c233-4614-455f-8fe8-4e55166ffc60",
+				"labels": {
+					"app.kubernetes.io/component": "unittest",
+					"app.kubernetes.io/instance": "Proteus"
+				}
+			},
+			"spec": {
+			    "serviceAccountName": "serviceAccount",
+				"containers": [{
+					"name": "0117c233-4614-455f-8fe8-4e55166ffc60",
+					"image": "myrepo.azurecr.io/unittest:0.0.0",
+					"command": [
+						"/bin/sh",
+						"-c"
+					],
+					"args": [
+						"echo 1"
+					],
+					"envFrom": [{
+						"secretRef": {
+							"name": "some-secret"
+						}
+					}],
+					"env": [{
+							"name": "ENV1",
+							"value": "value1"
+						},
+						{
+							"name": "ENV2",
+							"value": "value2"
+						}
+					],
+					"resources": {
+						"limits": {
+							"cpu": "800m",
+							"memory": "6000Mi"
+						},
+						"requests": {
+							"cpu": "800m",
+							"memory": "6000Mi"
+						}
+					},
+					"imagePullPolicy": "IfNotPresent"
+				}],
+				"restartPolicy": "Never",
+				"affinity": {
+					"nodeAffinity": {
+						"requiredDuringSchedulingIgnoredDuringExecution": {
+							"nodeSelectorTerms": [{
+								"matchExpressions": [{
+									"key": "kubernetes.unittest.com/nodetype",
+									"operator": "In",
+									"values": [
+										"unittest"
+									]
+								}]
+							}]
+						}
+					}
+				},
+				"tolerations": [
+					{
+						"key": "kubernetes.unittest.com/nodetype",
+						"operator": "Equal",
+						"value": "unittest",
+						"effect": "NoSchedule"
+					}
+				]
+			}
+		}
+	}
+}
