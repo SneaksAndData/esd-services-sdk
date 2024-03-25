@@ -1,4 +1,5 @@
-# SnD.SDK
+# SnD.SDK ![NuGet Version](https://img.shields.io/nuget/v/SnD.Sdk)
+
 Core SDK for Sneaks & Data OSS Projects written in C#. Use cases include:
 - Easy injection of commonly used services like blob, queue etc.
 - Injection of Kubernetes client(s). We support both simple in-cluster mode and multi-cluster mode, allowing you to write applications targeting arbitrary clusters
