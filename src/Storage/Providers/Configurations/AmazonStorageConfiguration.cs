@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Security.Policy;
-using System.Text;
-using Amazon;
-using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using static Snd.Sdk.Hosting.EnvironmentExtensions;
 
 namespace Snd.Sdk.Storage.Providers.Configurations
 {
@@ -39,12 +35,11 @@ namespace Snd.Sdk.Storage.Providers.Configurations
         /// <returns></returns>
         public static AmazonStorageConfiguration CreateFromEnv()
         {
-            // TODO: should be GetDomainEnvironmentVariable
             return new AmazonStorageConfiguration
             {
-                AccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"),
-                SecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
-                ServiceUrl = new Uri(Environment.GetEnvironmentVariable("AWS_ENDPOINT_URL"))
+                AccessKey = GetDomainEnvironmentVariable("AWS_ACCESS_KEY_ID"),
+                SecretKey = GetDomainEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
+                ServiceUrl = new Uri(GetDomainEnvironmentVariable("AWS_ENDPOINT_URL"))
             };
         }
     }
