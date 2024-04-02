@@ -103,7 +103,7 @@ namespace Snd.Sdk.Kubernetes.Streaming.Sources
 
                 this.onWatcherEvent = GetAsyncCallback<(WatchEventType, T)>(OnWatcherEvent);
                 this.onWatcherFail = GetAsyncCallback<Exception>(OnWatcherFail);
-                this.onWatcherClose = GetAsyncCallback(CompleteStage);
+                this.onWatcherClose = GetAsyncCallback(OnWatcherClose);
 
                 SetHandler(this.kubernetesResourceEventSource.Out, DoNothing, Finish);
             }
@@ -118,9 +118,16 @@ namespace Snd.Sdk.Kubernetes.Streaming.Sources
             {
                 Emit(kubernetesResourceEventSource.Out, tuple);
             }
+            
+            private void OnWatcherClose()
+            {
+                this.kubernetesResourceEventSource.logger?.LogInformation("Watcher completed");
+                this.watcher?.Dispose();
+            }
 
             private void OnWatcherFail(Exception exception)
             {
+                this.kubernetesResourceEventSource.logger?.LogWarning(exception, "Watcher failed");
                 this.watcher?.Dispose();
                 switch (decider.Decide(exception))
                 {
@@ -147,6 +154,7 @@ namespace Snd.Sdk.Kubernetes.Streaming.Sources
 
             private Watcher<T> StartWatcher()
             {
+                this.kubernetesResourceEventSource.logger?.LogInformation("Watcher started");
                 return this.watcherFactory(
                    (et, resource) => this.onWatcherEvent((et, resource)),
                    onWatcherFail,
