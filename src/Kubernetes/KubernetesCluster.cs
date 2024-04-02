@@ -317,7 +317,7 @@ namespace Snd.Sdk.Kubernetes
                 (onEvent, onError, onClosed) => this.KubeApi
                     .BatchV1
                     .ListNamespacedJobWithHttpMessagesAsync(jobNamespace, watch: true)
-                    .Watch(onEvent, onError),
+                    .Watch(onEvent, onError, onClosed),
                 maxBufferCapacity, overflowStrategy, reconnectDelay, this.logger);
         }
 
@@ -330,7 +330,7 @@ namespace Snd.Sdk.Kubernetes
                 (onEvent, onError, onClosed) => this.KubeApi
                     .CoreV1
                     .ListNamespacedPodWithHttpMessagesAsync(podNamespace, watch: true)
-                    .Watch<V1Pod, V1PodList>(onEvent, onError),
+                    .Watch(onEvent, onError, onClosed),
                 maxBufferCapacity, overflowStrategy, reconnectDelay, this.logger);
         }
 
@@ -348,7 +348,7 @@ namespace Snd.Sdk.Kubernetes
                 (onEvent, onError, onClosed) => this.KubeApi
                     .CustomObjects
                     .ListNamespacedCustomObjectWithHttpMessagesAsync(group, version, crdNamespace, plural, watch: true)
-                    .Watch(onEvent, onError),
+                    .Watch(onEvent, onError, onClosed),
                 maxBufferCapacity, overflowStrategy, reconnectDelay, this.logger);
         }
 
