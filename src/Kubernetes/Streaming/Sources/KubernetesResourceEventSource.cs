@@ -118,7 +118,7 @@ namespace Snd.Sdk.Kubernetes.Streaming.Sources
             {
                 Emit(kubernetesResourceEventSource.Out, tuple);
             }
-            
+
             private void OnWatcherClose()
             {
                 this.kubernetesResourceEventSource.logger?.LogInformation("Watcher completed");
