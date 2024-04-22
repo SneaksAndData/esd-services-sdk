@@ -14,7 +14,7 @@ namespace Snd.Sdk.Metrics
     [ExcludeFromCodeCoverage]
     public class DatadogMetricsService : MetricsService, IDisposable
     {
-        private DogStatsdService dogStatsdService;
+        private readonly DogStatsdService dogStatsdService;
 
         /// <summary>
         /// Constructs a new instance of <see cref="DatadogMetricsService"/>.
@@ -22,8 +22,8 @@ namespace Snd.Sdk.Metrics
         /// <param name="datadogConfiguration"></param>
         public DatadogMetricsService(DatadogConfiguration datadogConfiguration)
         {
-            dogStatsdService = new DogStatsdService();
-            dogStatsdService.Configure(datadogConfiguration.StatsdConfig);
+            this.dogStatsdService = new DogStatsdService();
+            this.dogStatsdService.Configure(datadogConfiguration.StatsdConfig);
         }
 
         private string[] ConvertTags(IDictionary<string, string> tagsDict)
@@ -48,6 +48,7 @@ namespace Snd.Sdk.Metrics
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             this.dogStatsdService.Dispose();
         }
 

@@ -11,9 +11,10 @@ public static class EnvironmentExtensions
     /// Read environment variable bound to this application domain.
     /// </summary>
     /// <param name="varName">Name of environment variable bound to AppDomain to read.</param>
+    /// <param name="defaultValue">Optional default value to provide.</param> 
     /// <returns></returns>
-    public static string GetDomainEnvironmentVariable(string varName) =>
-        Environment.GetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}") ?? "";
+    public static string GetDomainEnvironmentVariable(string varName, string defaultValue = "") =>
+        Environment.GetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}") ?? defaultValue;
 
     /// <summary>
     /// Sets the environment variable bound to this application domain.

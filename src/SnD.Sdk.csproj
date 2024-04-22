@@ -8,13 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Akka" Version="1.5.18" />
-        <PackageReference Include="Akka.Hosting" Version="1.5.18" />
+        <PackageReference Include="Akka" Version="1.5.19" />
+        <PackageReference Include="Akka.Hosting" Version="1.5.19" />
         <PackageReference Include="Akka.Logger.Serilog" Version="1.5.12.1" />
-        <PackageReference Include="Akka.Streams" Version="1.5.18" />
-        <PackageReference Include="Akka.Streams.Azure.StorageQueue" Version="1.5.15" />
+        <PackageReference Include="Akka.Streams" Version="1.5.19" />
+        <PackageReference Include="Akka.Streams.Azure.StorageQueue" Version="1.5.18" />
         <PackageReference Include="Apache.Avro" Version="1.11.3" />
-        <PackageReference Include="AWSSDK.S3" Version="3.7.305.30" />
+        <PackageReference Include="AWSSDK.S3" Version="3.7.307.19" />
         <PackageReference Include="Azure.Data.Tables" Version="12.8.3" />
         <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
         <PackageReference Include="Azure.Storage.Files.Shares" Version="12.17.1" />
@@ -23,7 +23,6 @@
         <PackageReference Include="CassandraCSharpDriver.AppMetrics" Version="3.20.1" />
         <PackageReference Include="DogStatsD-CSharp-Client" Version="8.0.0" />
         <PackageReference Include="KubernetesClient" Version="13.0.26" />
-        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
         <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
