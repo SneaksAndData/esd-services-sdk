@@ -33,7 +33,7 @@ namespace Snd.Sdk.Metrics.Configurations
 
             return new DatadogConfiguration { StatsdConfig = defaultConf };
         }
-        
+
         /// <summary>
         /// Configuration for submitting metrics over UDS.
         /// </summary>
@@ -50,6 +50,6 @@ namespace Snd.Sdk.Metrics.Configurations
             };
 
             return new DatadogConfiguration { StatsdConfig = defaultConf };
-        }        
+        }
     }
 }
