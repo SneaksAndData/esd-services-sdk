@@ -43,13 +43,13 @@ public static class EnvironmentExtensions
     /// <returns></returns>
     public static void SetDomainEnvironmentVariable(string varName, string varValue) =>
         Environment.SetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}", varValue);
-    
+
     /// <summary>
     /// Returns the name prefix used for domain variables.
     /// </summary>
     /// <returns></returns>
     public static string GetDomainVariablePrefix() => $"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__";
-    
+
     /// <summary>
     /// Returns the name prefix used for assembly variables.
     /// </summary>
@@ -58,6 +58,6 @@ public static class EnvironmentExtensions
     {
         var name = Assembly.GetExecutingAssembly().GetName().Name ??
                    throw new InvalidOperationException("Assembly name not found.");
-            return $"{name.ToUpperInvariant()}__";
+        return $"{name.ToUpperInvariant()}__";
     }
 }
