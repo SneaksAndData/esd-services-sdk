@@ -1,6 +1,7 @@
 ﻿using StatsdClient;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Snd.Sdk.Hosting;
 
 namespace Snd.Sdk.Metrics.Configurations
 {
@@ -43,7 +44,7 @@ namespace Snd.Sdk.Metrics.Configurations
         {
             var defaultConf = new StatsdConfig
             {
-                StatsdServerName = Environment.GetEnvironmentVariable("PROTEUS__DD_UNIX_DOMAIN_SOCKET_PATH") ?? "unix:///var/run/datadog/dsd.socket",
+                StatsdServerName = EnvironmentExtensions.GetDomainEnvironmentVariable("DD_UNIX_DOMAIN_SOCKET_PATH") ?? "unix:///var/run/datadog/dsd.socket",
                 Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
                 ServiceVersion = Environment.GetEnvironmentVariable("APPLICATION_VERSION"),
                 Prefix = metricNamespace.ToLower()
