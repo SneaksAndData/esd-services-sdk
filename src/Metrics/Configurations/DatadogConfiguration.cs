@@ -16,7 +16,7 @@ namespace Snd.Sdk.Metrics.Configurations
         public StatsdConfig StatsdConfig { get; private set; }
 
         /// <summary>
-        /// Default constructor.
+        /// Default constructor, uses UDP connection.
         /// </summary>
         /// <param name="metricNamespace">Namespace for all metrics reported from this app, e.g. application name.</param>
         /// <returns></returns>
@@ -33,5 +33,23 @@ namespace Snd.Sdk.Metrics.Configurations
 
             return new DatadogConfiguration { StatsdConfig = defaultConf };
         }
+        
+        /// <summary>
+        /// Configuration for submitting metrics over UDS.
+        /// </summary>
+        /// <param name="metricNamespace">Namespace for all metrics reported from this app, e.g. application name.</param>
+        /// <returns></returns>
+        public static DatadogConfiguration UnixDomainSocket(string metricNamespace)
+        {
+            var defaultConf = new StatsdConfig
+            {
+                StatsdServerName = Environment.GetEnvironmentVariable("PROTEUS__DD_UNIX_DOMAIN_SOCKET_PATH") ?? "unix:///var/run/datadog/dsd.socket",
+                Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                ServiceVersion = Environment.GetEnvironmentVariable("APPLICATION_VERSION"),
+                Prefix = metricNamespace.ToLower()
+            };
+
+            return new DatadogConfiguration { StatsdConfig = defaultConf };
+        }        
     }
 }

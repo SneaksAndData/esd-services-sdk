@@ -19,10 +19,7 @@ namespace Snd.Sdk.Metrics.Providers
         /// <returns></returns>
         public static IServiceCollection AddDatadogMetrics(this IServiceCollection services, DatadogConfiguration configuration)
         {
-            return services.AddSingleton(typeof(MetricsService), provider =>
-            {
-                return new DatadogMetricsService(configuration);
-            });
+            return services.AddSingleton(typeof(MetricsService), provider => new DatadogMetricsService(configuration));
         }
     }
 }
