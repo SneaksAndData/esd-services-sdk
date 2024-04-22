@@ -54,5 +54,10 @@ public static class EnvironmentExtensions
     /// Returns the name prefix used for assembly variables.
     /// </summary>
     /// <returns></returns>
-    public static string GetAssemblyVariablePrefix() => $"{Assembly.GetExecutingAssembly().GetName().Name?.ToUpperInvariant()}__";
+    public static string GetAssemblyVariablePrefix()
+    {
+        var name = Assembly.GetExecutingAssembly().GetName().Name ??
+                   throw new InvalidOperationException("Assembly name not found.");
+            return $"{name.ToUpperInvariant()}__";
+    }
 }
