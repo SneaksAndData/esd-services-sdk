@@ -19,14 +19,38 @@ namespace Snd.Sdk.Logs.Providers
         /// <param name="applicationName">name of application, e.g. nameof(Crystal)</param>
         /// <param name="configureLogger">Delegate that changes logger configuration options</param>
         /// <returns></returns>
-        public static IHostBuilder AddSerilogLogger(
-            this IHostBuilder builder,
-            string applicationName,
+        [Obsolete("Use other overload of the AddSerilogLogger method instead")]
+        public static IHostBuilder AddSerilogLogger( this IHostBuilder builder, string applicationName,
             Func<LoggerConfiguration, LoggerConfiguration> configureLogger)
+        {
+            return builder.AddSerilogLogger(applicationName, (_, services, loggerConfiguration) =>
+            {
+                configureLogger?.Invoke(loggerConfiguration.BaseConfiguration(services, applicationName));
+            });
+        }
+        
+        /// <summary>
+        /// Creates serilog logger for asp host builder
+        /// </summary>
+        /// <param name="builder">ASP.Net core host builder</param>
+        /// <param name="applicationName">name of application, e.g. nameof(Crystal)</param>
+        /// <param name="configureLogger">Delegate that changes logger configuration options</param>
+        /// <returns></returns>
+        public static IHostBuilder AddSerilogLogger( this IHostBuilder builder,
+            string applicationName,
+            Action<HostBuilderContext, IServiceProvider, LoggerConfiguration> configureLogger = null) 
         {
             return builder.UseSerilog((hostingContext, services, loggerConfiguration) =>
             {
-                var baseConfiguration = (Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
+                var configuration = loggerConfiguration.BaseConfiguration(services, applicationName);
+                configureLogger?.Invoke(hostingContext, services, configuration);
+            });
+        }
+
+        private static LoggerConfiguration BaseConfiguration(this LoggerConfiguration loggerConfiguration,
+            IServiceProvider services, string applicationName)
+        {
+                return (Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
                 {
                     "INFO" => loggerConfiguration.MinimumLevel.Information(),
                     "WARN" => loggerConfiguration.MinimumLevel.Warning(),
@@ -37,23 +61,23 @@ namespace Snd.Sdk.Logs.Providers
                     .Enrich.FromLogContext()
                     .EnrichWithCommonProperties(applicationName);
 
-                configureLogger?.Invoke(baseConfiguration);
-            });
         }
 
         /// <summary>
         /// Creates serilog logger for asp host builder
         /// </summary>
-        /// <param name="applicationName">name of application, e.g. nameof(SuperCoolApplication)</param>
+        /// <param name="applicationName">name of application, e.g. nameof(ConsoleApplication)</param>
+        /// <param name="configure">Optional configuration override callback</param>
         /// <returns></returns>
-        public static Serilog.ILogger CreateBootstrappLogger(string applicationName)
+        public static ILogger CreateBootstrappLogger(string applicationName,
+            Func<LoggerConfiguration, LoggerConfiguration> configure = null)
         {
-            return new LoggerConfiguration()
+            var configuration = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .EnrichWithCommonProperties(applicationName)
-                .CreateBootstrapLogger();
+                .EnrichWithCommonProperties(applicationName);
+            return (configure?.Invoke(configuration) ?? configuration).CreateBootstrapLogger();
         }
 
         private static LoggerConfiguration EnrichWithCommonProperties(this LoggerConfiguration loggerConfiguration,
