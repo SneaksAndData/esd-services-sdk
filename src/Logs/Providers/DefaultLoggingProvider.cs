@@ -3,6 +3,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Snd.Sdk.Hosting;
 
 namespace Snd.Sdk.Logs.Providers
 {
@@ -74,7 +75,7 @@ namespace Snd.Sdk.Logs.Providers
         private static LoggerConfiguration BaseConfiguration(this LoggerConfiguration loggerConfiguration,
             IServiceProvider services, string applicationName)
         {
-            return (Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
+            return (EnvironmentExtensions.GetDomainEnvironmentVariable("DEFAULT_LOG_LEVEL") switch
             {
                 "INFO" => loggerConfiguration.MinimumLevel.Information(),
                 "WARN" => loggerConfiguration.MinimumLevel.Warning(),

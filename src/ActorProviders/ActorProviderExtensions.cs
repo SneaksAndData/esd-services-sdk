@@ -11,6 +11,7 @@ using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util;
 using Microsoft.Extensions.DependencyInjection;
+using Snd.Sdk.Hosting;
 
 namespace Snd.Sdk.ActorProviders
 {
@@ -126,7 +127,7 @@ namespace Snd.Sdk.ActorProviders
         private static void ConfigureActorLogging(AkkaConfigurationBuilder builder) =>
             builder.ConfigureLoggers(loggerBuilder =>
             {
-                loggerBuilder.LogLevel = Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
+                loggerBuilder.LogLevel = EnvironmentExtensions.GetDomainEnvironmentVariable("DEFAULT_LOG_LEVEL") switch
                 {
                     "INFO" => LogLevel.InfoLevel,
                     "WARN" => LogLevel.WarningLevel,
