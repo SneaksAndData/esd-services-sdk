@@ -114,34 +114,37 @@ namespace Snd.Sdk.ActorProviders
         /// Configures the application to the local ActorSystem singleton.
         /// </summary>
         /// <param name="services">Service collection (DI container).</param>
+        /// <param name="configureAction">Optional configuration Action for ActorSystem</param>
         /// <returns></returns>
-        public static IServiceCollection AddLocalActorSystem(this IServiceCollection services)
-        {
-            return services.AddAkka(nameof(AppDomain.CurrentDomain.FriendlyName), builder =>
+        public static IServiceCollection AddLocalActorSystem(this IServiceCollection services, Action<AkkaConfigurationBuilder> configureAction = null)
+         => services.AddAkka(nameof(AppDomain.CurrentDomain.FriendlyName), builder =>
+         {
+             ConfigureActorLogging(builder);
+             configureAction?.Invoke(builder);
+         }).AddSingleton<IMaterializer>(provider => provider.GetRequiredService<ActorSystem>().Materializer());
+
+        private static void ConfigureActorLogging(AkkaConfigurationBuilder builder) =>
+            builder.ConfigureLoggers(loggerBuilder =>
             {
-                builder.ConfigureLoggers(loggerBuilder =>
+                loggerBuilder.LogLevel = Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
                 {
-                    loggerBuilder.LogLevel = Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
-                    {
-                        "INFO" => LogLevel.InfoLevel,
-                        "WARN" => LogLevel.WarningLevel,
-                        "ERROR" => LogLevel.ErrorLevel,
-                        "DEBUG" => LogLevel.DebugLevel,
-                        _ => LogLevel.InfoLevel
-                    };
-                    loggerBuilder.LogConfigOnStart = true;
-                    loggerBuilder.AddLogger<SerilogLogger>();
-                    loggerBuilder.DebugOptions = new DebugOptions
-                    {
-                        Unhandled = true,
-                        EventStream = true,
-                        LifeCycle = true,
-                        AutoReceive = true,
-                        Receive = true
-                    };
-                    loggerBuilder.LogMessageFormatter = typeof(SerilogLogMessageFormatter);
-                });
-            }).AddSingleton<IMaterializer>(provider => provider.GetRequiredService<ActorSystem>().Materializer());
-        }
+                    "INFO" => LogLevel.InfoLevel,
+                    "WARN" => LogLevel.WarningLevel,
+                    "ERROR" => LogLevel.ErrorLevel,
+                    "DEBUG" => LogLevel.DebugLevel,
+                    _ => LogLevel.InfoLevel
+                };
+                loggerBuilder.LogConfigOnStart = true;
+                loggerBuilder.AddLogger<SerilogLogger>();
+                loggerBuilder.DebugOptions = new DebugOptions
+                {
+                    Unhandled = true,
+                    EventStream = true,
+                    LifeCycle = true,
+                    AutoReceive = true,
+                    Receive = true
+                };
+                loggerBuilder.LogMessageFormatter = typeof(SerilogLogMessageFormatter);
+            });
     }
 }

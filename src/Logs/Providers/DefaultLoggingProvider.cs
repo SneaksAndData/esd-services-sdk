@@ -19,8 +19,7 @@ namespace Snd.Sdk.Logs.Providers
         /// <param name="applicationName">name of application, e.g. nameof(Crystal)</param>
         /// <param name="configureLogger">Delegate that changes logger configuration options</param>
         /// <returns></returns>
-        [Obsolete("Use other overload of the AddSerilogLogger method instead")]
-        public static IHostBuilder AddSerilogLogger( this IHostBuilder builder, string applicationName,
+        public static IHostBuilder AddSerilogLogger(this IHostBuilder builder, string applicationName,
             Func<LoggerConfiguration, LoggerConfiguration> configureLogger)
         {
             return builder.AddSerilogLogger(applicationName, (_, services, loggerConfiguration) =>
@@ -28,7 +27,7 @@ namespace Snd.Sdk.Logs.Providers
                 configureLogger?.Invoke(loggerConfiguration.BaseConfiguration(services, applicationName));
             });
         }
-        
+
         /// <summary>
         /// Creates serilog logger for asp host builder
         /// </summary>
@@ -36,9 +35,9 @@ namespace Snd.Sdk.Logs.Providers
         /// <param name="applicationName">name of application, e.g. nameof(Crystal)</param>
         /// <param name="configureLogger">Delegate that changes logger configuration options</param>
         /// <returns></returns>
-        public static IHostBuilder AddSerilogLogger( this IHostBuilder builder,
+        public static IHostBuilder AddSerilogLogger(this IHostBuilder builder,
             string applicationName,
-            Action<HostBuilderContext, IServiceProvider, LoggerConfiguration> configureLogger = null) 
+            Action<HostBuilderContext, IServiceProvider, LoggerConfiguration> configureLogger = null)
         {
             return builder.UseSerilog((hostingContext, services, loggerConfiguration) =>
             {
@@ -47,29 +46,13 @@ namespace Snd.Sdk.Logs.Providers
             });
         }
 
-        private static LoggerConfiguration BaseConfiguration(this LoggerConfiguration loggerConfiguration,
-            IServiceProvider services, string applicationName)
-        {
-                return (Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
-                {
-                    "INFO" => loggerConfiguration.MinimumLevel.Information(),
-                    "WARN" => loggerConfiguration.MinimumLevel.Warning(),
-                    "ERROR" => loggerConfiguration.MinimumLevel.Error(),
-                    "DEBUG" => loggerConfiguration.MinimumLevel.Debug(),
-                    _ => loggerConfiguration.MinimumLevel.Information()
-                }).ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .EnrichWithCommonProperties(applicationName);
-
-        }
-
         /// <summary>
         /// Creates serilog logger for asp host builder
         /// </summary>
         /// <param name="applicationName">name of application, e.g. nameof(ConsoleApplication)</param>
         /// <param name="configure">Optional configuration override callback</param>
         /// <returns></returns>
-        public static ILogger CreateBootstrappLogger(string applicationName,
+        public static ILogger CreateBootstrapLogger(string applicationName,
             Func<LoggerConfiguration, LoggerConfiguration> configure = null)
         {
             var configuration = new LoggerConfiguration()
@@ -86,6 +69,21 @@ namespace Snd.Sdk.Logs.Providers
             return loggerConfiguration.Enrich.WithProperty("Application", applicationName)
                 .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Local")
                 .Enrich.WithProperty("ApplicationVersion", Environment.GetEnvironmentVariable("APPLICATION_VERSION") ?? "v0.0.0");
+        }
+
+        private static LoggerConfiguration BaseConfiguration(this LoggerConfiguration loggerConfiguration,
+            IServiceProvider services, string applicationName)
+        {
+            return (Environment.GetEnvironmentVariable("PROTEUS__DEFAULT_LOG_LEVEL") switch
+            {
+                "INFO" => loggerConfiguration.MinimumLevel.Information(),
+                "WARN" => loggerConfiguration.MinimumLevel.Warning(),
+                "ERROR" => loggerConfiguration.MinimumLevel.Error(),
+                "DEBUG" => loggerConfiguration.MinimumLevel.Debug(),
+                _ => loggerConfiguration.MinimumLevel.Information()
+            }).ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .EnrichWithCommonProperties(applicationName);
         }
     }
 }
