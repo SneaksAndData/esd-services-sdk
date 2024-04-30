@@ -38,7 +38,7 @@ namespace Snd.Sdk.Kubernetes
             var jobMeta = new V1ObjectMeta(name: jobName, labels: new Dictionary<string, string>
             {
                 {
-                    "api.sneaksanddata.io/proteus-version",
+                    "api.sneaksanddata.io/app-version",
                     Environment.GetEnvironmentVariable("APPLICATION_VERSION") ?? "0.0.0"
                 }
             });
@@ -52,7 +52,7 @@ namespace Snd.Sdk.Kubernetes
                     serviceAccountName: "default",
                     containers: new List<V1Container>
                     {
-                        new V1Container(
+                        new(
                             name: jobName,
                             image: imageName,
                             resources: new V1ResourceRequirements(limits: resourceQuantities,
@@ -370,6 +370,57 @@ namespace Snd.Sdk.Kubernetes
 
             job.Spec.Template.Spec.Tolerations = (job.Spec.Template.Spec.Tolerations ?? new List<V1Toleration>())
                 .Concat(newTolerations).ToList();
+
+            return job;
+        }
+
+        /// <summary>
+        /// Adds or updates volumes and volume mounts to the V1Job object's template specification that target hostPath paths.
+        /// </summary>
+        /// <param name="job">The V1Job object to modify.</param>
+        /// <param name="volumeMap">A dictionary of volume name to hostPath path (ends with /).</param>
+        /// <returns>The modified V1Job object.</returns>
+        public static V1Job WithHostPathVolumes(this V1Job job, Dictionary<string, string> volumeMap)
+        {
+            job.Spec.Template.Spec.Volumes ??= new List<V1Volume>();
+            job.Spec.Template.Spec.Containers[0].VolumeMounts ??= new List<V1VolumeMount>();
+
+            foreach (var (volumeName, hostPath) in volumeMap)
+            {
+                var existingVolume = job.Spec.Template.Spec.Volumes.FirstOrDefault(vol => vol.Name == volumeName);
+                if (existingVolume != null)
+                {
+                    job.Spec.Template.Spec.Volumes[job.Spec.Template.Spec.Volumes.IndexOf(existingVolume)].HostPath =
+                        new V1HostPathVolumeSource
+                        {
+                            Path = hostPath
+                        };
+                }
+                else
+                {
+                    job.Spec.Template.Spec.Volumes.Add(new V1Volume
+                    {
+                        Name = volumeName
+                    });
+                }
+
+                var existingMount = job.Spec.Template.Spec.Containers[0].VolumeMounts
+                    .FirstOrDefault(vol => vol.Name == volumeName);
+
+                if (existingMount != null)
+                {
+                    job.Spec.Template.Spec.Containers[0]
+                        .VolumeMounts[job.Spec.Template.Spec.Containers[0].VolumeMounts.IndexOf(existingMount)]
+                        .MountPath = hostPath.TrimEnd('\\');
+                }
+                else
+                {
+                    job.Spec.Template.Spec.Containers[0].VolumeMounts.Add(new V1VolumeMount(
+                            mountPath: hostPath.TrimEnd('\\'),
+                            name: volumeName
+                        ));
+                }
+            }
 
             return job;
         }
