@@ -4,7 +4,7 @@ using StackExchange.Redis;
 
 namespace SnD.Sdk.Storage.Cache;
 
-public class RedisSubscriberClient: IRedisSubscriberClient
+public class RedisSubscriberClient : IRedisSubscriberClient
 {
     private readonly ISubscriber subscriber;
 

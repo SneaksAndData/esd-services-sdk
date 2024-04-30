@@ -3,7 +3,7 @@ using StackExchange.Redis;
 
 namespace SnD.Sdk.Storage.Cache;
 
-public class RedisPublisherClient: IRedisPublisherClient
+public class RedisPublisherClient : IRedisPublisherClient
 {
 
     private readonly ISubscriber publisher;
