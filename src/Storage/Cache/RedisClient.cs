@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Snd.Sdk.Storage.Base;
 using StackExchange.Redis;
 
@@ -8,6 +9,7 @@ namespace SnD.Sdk.Storage.Cache;
 /// <summary>
 /// Redis client for performing operations on Redis.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class RedisClient : IRedisClient
 {
     private readonly ConnectionMultiplexer redis;

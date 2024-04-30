@@ -1,9 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Snd.Sdk.Storage.Base;
 using StackExchange.Redis;
 
 namespace SnD.Sdk.Storage.Cache;
-
+[ExcludeFromCodeCoverage]
 public class RedisSubscriberClient : IRedisSubscriberClient
 {
     private readonly ISubscriber subscriber;
