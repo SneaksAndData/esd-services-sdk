@@ -400,7 +400,8 @@ namespace Snd.Sdk.Kubernetes
                 {
                     job.Spec.Template.Spec.Volumes.Add(new V1Volume
                     {
-                        Name = volumeName
+                        Name = volumeName,
+                        HostPath = new V1HostPathVolumeSource { Path = hostPath }
                     });
                 }
 
@@ -411,12 +412,12 @@ namespace Snd.Sdk.Kubernetes
                 {
                     job.Spec.Template.Spec.Containers[0]
                         .VolumeMounts[job.Spec.Template.Spec.Containers[0].VolumeMounts.IndexOf(existingMount)]
-                        .MountPath = hostPath.TrimEnd('\\');
+                        .MountPath = hostPath.TrimEnd('/');
                 }
                 else
                 {
                     job.Spec.Template.Spec.Containers[0].VolumeMounts.Add(new V1VolumeMount(
-                            mountPath: hostPath.TrimEnd('\\'),
+                            mountPath: hostPath.TrimEnd('/'),
                             name: volumeName
                         ));
                 }
