@@ -13,6 +13,7 @@ using k8s.Autorest;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Snd.Sdk.Helpers;
 using Snd.Sdk.Tasks;
 using Policy = Polly.Policy;
 
@@ -291,8 +292,7 @@ namespace Snd.Sdk.Kubernetes
             var newAnnotations = replace switch
             {
                 true => annotations,
-                false => (job.Metadata.Annotations ?? new Dictionary<string, string>())
-                    .Concat(annotations).ToDictionary(kv => kv.Key, kv => kv.Value)
+                false => (job.Metadata.Annotations ?? new Dictionary<string, string>()).DeepClone().MergeDifference(annotations)
             };
 
             job.Metadata.Annotations = newAnnotations;
