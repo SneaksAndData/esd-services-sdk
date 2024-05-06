@@ -478,10 +478,10 @@ namespace Snd.Sdk.Kubernetes
 
 
         /// <summary>
-        /// Adds an Job owner reference to a Job.
+        /// Adds an Job owner object reference to a Job.
         /// </summary>
         /// <param name="job">The Kubernetes Job object to add the owner reference to.</param>
-        /// <param name="metadata">The metadata of the owner object.</param>
+        /// <param name="metadata">The metadata of the Job owner object.</param>
         /// <returns>The Kubernetes Job object with the added owner reference.</returns>
         public static V1Job WithJobOwnerReference(this V1Job job, V1ObjectMeta metadata)
         {
