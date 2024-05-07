@@ -292,7 +292,8 @@ namespace Snd.Sdk.Kubernetes
             var newAnnotations = replace switch
             {
                 true => annotations,
-                false => (job.Metadata.Annotations ?? new Dictionary<string, string>()).DeepClone().MergeDifference(annotations)
+                false => (job.Metadata.Annotations ?? new Dictionary<string, string>()).DeepClone()
+                    .MergeDifference(annotations)
             };
 
             job.Metadata.Annotations = newAnnotations;
@@ -417,9 +418,9 @@ namespace Snd.Sdk.Kubernetes
                 else
                 {
                     job.Spec.Template.Spec.Containers[0].VolumeMounts.Add(new V1VolumeMount(
-                            mountPath: hostPath.TrimEnd('/'),
-                            name: volumeName
-                        ));
+                        mountPath: hostPath.TrimEnd('/'),
+                        name: volumeName
+                    ));
                 }
             }
 
@@ -462,16 +463,31 @@ namespace Snd.Sdk.Kubernetes
         /// <summary>
         /// Adds an owner reference to the job.
         /// </summary>
-        /// <param name="job">The job object to modify</param>
-        /// <param name="owner">Kubernetes object added as owner to the job</param>
-        /// <returns></returns>
-        public static V1Job WithOwnerReference(this V1Job job, IKubernetesObject<V1ObjectMeta> owner)
+        /// <param name="job">The Kubernetes Job object to add the owner reference to.</param>
+        /// <param name="apiVersion">The API version of the owner object.</param>
+        /// <param name="kind">The kind of the owner object.</param>
+        /// <param name="metadata">The metadata of the owner object.</param>
+        /// <returns>The Kubernetes Job object with the added owner reference.</returns>
+        private static V1Job WithOwnerReference(this V1Job job, string apiVersion, string kind, V1ObjectMeta metadata)
         {
             job.Metadata.OwnerReferences ??= new List<V1OwnerReference>();
-            job.Metadata.OwnerReferences.Add(new V1OwnerReference(owner.ApiVersion, owner.Kind, owner.Metadata.Name,
-                owner.Metadata.Uid));
+            job.Metadata.OwnerReferences.Add(new V1OwnerReference(apiVersion, kind, metadata.Name,
+                metadata.Uid));
             return job;
         }
+
+
+        /// <summary>
+        /// Adds an Job owner object reference to a Job.
+        /// </summary>
+        /// <param name="job">The Kubernetes Job object to add the owner reference to.</param>
+        /// <param name="metadata">The metadata of the Job owner object.</param>
+        /// <returns>The Kubernetes Job object with the added owner reference.</returns>
+        public static V1Job WithJobOwnerReference(this V1Job job, V1ObjectMeta metadata)
+        {
+            return WithOwnerReference(job, "batch/v1", "Job", metadata);
+        }
+
 
         /// <summary>
         /// Adds the billing id annotation to the job.
@@ -582,7 +598,8 @@ namespace Snd.Sdk.Kubernetes
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "API Server responded with HTTP 429. Will retry in {retryInSeconds} seconds", span.TotalSeconds);
+                            "API Server responded with HTTP 429. Will retry in {retryInSeconds} seconds",
+                            span.TotalSeconds);
                         return Task.CompletedTask;
                     });
 
@@ -613,7 +630,8 @@ namespace Snd.Sdk.Kubernetes
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "Transport level error occured when connecting to the API Server. Will retry in {retryInSeconds} seconds", span.TotalSeconds);
+                            "Transport level error occured when connecting to the API Server. Will retry in {retryInSeconds} seconds",
+                            span.TotalSeconds);
                         return Task.CompletedTask;
                     });
 
