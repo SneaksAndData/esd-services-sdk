@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
 using Snd.Sdk.Storage.Base;
 using StackExchange.Redis;
 
@@ -31,70 +33,53 @@ public class RedisClient : IRedisClient
     }
 
     /// <inheritdoc />
-    public bool MultiExists(HashSet<string> keys)
+    public Task<bool> MultiExistsAsync(HashSet<string> keys)
     {
         var db = redis.GetDatabase();
-        int existsCount = 0;
-
-        foreach (var key in keys)
-        {
-            if (db.KeyExists(key))
-            {
-                existsCount++;
-            }
-        }
-
-        return existsCount == keys.Count;
+        var tasks = keys.Select(key => db.KeyExistsAsync(key)).ToArray();
+        return Task.WhenAll(tasks).ContinueWith(task => task.Result.All(exists => exists));
     }
 
     /// <inheritdoc />
-    public void Evict(string key)
+    public Task EvictAsync(string key)
     {
         var db = redis.GetDatabase();
-        db.KeyDelete(key);
+        return db.KeyDeleteAsync(key);
     }
 
     /// <inheritdoc />
-    public bool Exists(string key)
+    public Task<bool> ExistsAsync(string key)
     {
         var db = redis.GetDatabase();
-        return db.KeyExists(key);
+        return db.KeyExistsAsync((key));
     }
 
-    public string Get(string key)
+    public Task<RedisValue> GetAsync(string key)
     {
         var db = redis.GetDatabase();
-        return db.StringGet(key);
+        return db.StringGetAsync(key);
     }
 
     /// <inheritdoc />
-    public List<string> MultiGet(List<string> keys)
+    public Task<RedisValue[]> MultiGetAsync(List<string> keys)
     {
         var db = redis.GetDatabase();
         var redisKeys = keys.ConvertAll(k => (RedisKey)k).ToArray();
-        var redisValues = db.StringGet(redisKeys);
-        var results = new List<string>();
-
-        foreach (var value in redisValues)
-        {
-            results.Add(value.ToString());
-        }
-
-        return results;
+        return db.StringGetAsync(redisKeys);
     }
 
     /// <inheritdoc />
-    public void Set(string key, string value, TimeSpan expiresAfter)
+    public Task SetAsync(string key, string value, TimeSpan expiresAfter)
     {
         var db = redis.GetDatabase();
-        db.StringSet(key, value, expiresAfter);
+        return db.StringSetAsync(key, value, expiresAfter);
     }
 
     /// <inheritdoc />
-    public void SetExpiration(string key, TimeSpan expiresAfter)
+    public Task SetExpirationAsync(string key, TimeSpan expiresAfter)
     {
         var db = redis.GetDatabase();
-        db.KeyExpire(key, expiresAfter);
+        return db.KeyExpireAsync(key, expiresAfter);
     }
 
     /// <summary>
