@@ -80,6 +80,18 @@ namespace Snd.Sdk.Kubernetes.Base
         Task<V1JobStatus> SendJob(V1Job job, string jobNamespace, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Sends a Kubernetes job to the specified namespace and maps the result to a custom type.
+        /// </summary>
+        /// <param name="job">The Kubernetes job object to be sent.</param>
+        /// <param name="jobNamespace">The namespace in which to send the job.</param>
+        /// <param name="resultMapper">A function that maps the job result to a custom type.</param>
+        /// <param name="cancellationToken">An optional CancellationToken to interrupt task execution.</param>
+        /// <typeparam name="T">The type to which the job result will be mapped.</typeparam>
+        /// <returns>A Task object representing the asynchronous operation, which when completed will return the job result mapped to the custom type.</returns>
+        Task<T> SendJob<T>(V1Job job, string jobNamespace, Func<V1Job, T> resultMapper,
+            CancellationToken cancellationToken = default) where T : class;
+
+        /// <summary>
         /// Reads a job list for this fleet member.
         /// </summary>
         /// <returns></returns>

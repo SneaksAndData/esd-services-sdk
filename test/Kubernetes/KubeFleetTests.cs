@@ -2,9 +2,7 @@
 using Moq;
 using Snd.Sdk.Kubernetes;
 using Snd.Sdk.Kubernetes.Base;
-using Snd.Sdk.Kubernetes.Config;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 

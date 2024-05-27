@@ -87,9 +87,16 @@ namespace Snd.Sdk.Kubernetes
         /// <inheritdoc />
         public Task<V1JobStatus> SendJob(V1Job job, string jobNamespace, CancellationToken cancellationToken = default)
         {
+            return this.SendJob(job, jobNamespace, v1Job => v1Job.Status, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<T> SendJob<T>(V1Job job, string jobNamespace, Func<V1Job, T> resultMapper,
+            CancellationToken cancellationToken = default) where T : class
+        {
             var sendJobCall = (CancellationToken ct) => this.KubeApi.BatchV1
                 .CreateNamespacedJobAsync(job, jobNamespace, cancellationToken: ct)
-                .Map(result => result.Status);
+                .Map(resultMapper);
             return sendJobCall.RetryConnectionError(this.logger, cancellationToken);
         }
 
@@ -127,17 +134,19 @@ namespace Snd.Sdk.Kubernetes
         /// <inheritdoc />
         public Task<IEnumerable<NodeMetrics>> GetNodeMetricsAsync(CancellationToken cancellationToken = default)
         {
-            var metricsListApiCall = (CancellationToken ct) => this.KubeApi.CustomObjects.GetClusterCustomObjectAsync(
-                "metrics.k8s.io",
-                "v1beta1",
-                "nodes",
-                string.Empty,
-                ct
-            ).TryMap(result => ((JsonElement)result).Deserialize<NodeMetricsList>().Items, errorHandler: exception =>
-            {
-                this.logger.LogError(exception, "Failed to list Node metrics");
-                return Enumerable.Empty<NodeMetrics>();
-            });
+            var metricsListApiCall = (CancellationToken ct) => this.KubeApi.CustomObjects
+                .GetClusterCustomObjectAsync(
+                    "metrics.k8s.io",
+                    "v1beta1",
+                    "nodes",
+                    string.Empty,
+                    ct
+                ).TryMap(result => ((JsonElement)result).Deserialize<NodeMetricsList>().Items,
+                    errorHandler: exception =>
+                    {
+                        this.logger.LogError(exception, "Failed to list Node metrics");
+                        return Enumerable.Empty<NodeMetrics>();
+                    });
 
             return metricsListApiCall.RetryHttp429(this.logger, cancellationToken);
         }
@@ -157,17 +166,18 @@ namespace Snd.Sdk.Kubernetes
         /// <inheritdoc />
         public Task<IEnumerable<PodMetrics>> GetPodMetricsAsync(CancellationToken cancellationToken = default)
         {
-            var metricsListApiCall = (CancellationToken ct) => this.KubeApi.CustomObjects.GetClusterCustomObjectAsync(
-                "metrics.k8s.io",
-                "v1beta1",
-                "pods",
-                string.Empty,
-                ct
-            ).TryMap(result => ((JsonElement)result).Deserialize<PodMetricsList>().Items, exception =>
-            {
-                this.logger.LogError(exception, "Failed to list Pod metrics");
-                return Enumerable.Empty<PodMetrics>();
-            });
+            var metricsListApiCall = (CancellationToken ct) => this.KubeApi.CustomObjects
+                .GetClusterCustomObjectAsync(
+                    "metrics.k8s.io",
+                    "v1beta1",
+                    "pods",
+                    string.Empty,
+                    ct
+                ).TryMap(result => ((JsonElement)result).Deserialize<PodMetricsList>().Items, exception =>
+                {
+                    this.logger.LogError(exception, "Failed to list Pod metrics");
+                    return Enumerable.Empty<PodMetrics>();
+                });
 
             return metricsListApiCall.RetryHttp429(this.logger, cancellationToken);
         }
@@ -189,7 +199,9 @@ namespace Snd.Sdk.Kubernetes
                 plural,
                 name,
                 cancellationToken).TryMap(
-                result => converter == null ? ((JsonElement)result).Deserialize<T>() : converter((JsonElement)result),
+                result => converter == null
+                    ? ((JsonElement)result).Deserialize<T>()
+                    : converter((JsonElement)result),
                 exception =>
                 {
                     this.logger.LogError(exception,
@@ -218,7 +230,8 @@ namespace Snd.Sdk.Kubernetes
                     ? ((JsonElement)result).GetProperty("items").Deserialize<List<T>>()
                     : converter((JsonElement)result), exception =>
                 {
-                    this.logger.LogError(exception, "Failed to read a resource list {group}/{version}/{plural}", group,
+                    this.logger.LogError(exception, "Failed to read a resource list {group}/{version}/{plural}",
+                        group,
                         version, plural);
                     return Enumerable.Empty<T>();
                 });
@@ -249,7 +262,8 @@ namespace Snd.Sdk.Kubernetes
                         : converter((JsonElement)result), exception =>
                     {
                         this.logger.LogError(exception,
-                            "Failed to update status for a resource {group}/{version}/{plural}/{resourceName}", group,
+                            "Failed to update status for a resource {group}/{version}/{plural}/{resourceName}",
+                            group,
                             version, plural, resourceName);
                         return default;
                     });
@@ -347,7 +361,8 @@ namespace Snd.Sdk.Kubernetes
             return KubernetesResourceEventSource<T>.Create(
                 (onEvent, onError, onClosed) => this.KubeApi
                     .CustomObjects
-                    .ListNamespacedCustomObjectWithHttpMessagesAsync(group, version, crdNamespace, plural, watch: true)
+                    .ListNamespacedCustomObjectWithHttpMessagesAsync(group, version, crdNamespace, plural,
+                        watch: true)
                     .Watch(onEvent, onError, onClosed),
                 maxBufferCapacity, overflowStrategy, reconnectDelay, this.logger);
         }
@@ -408,12 +423,12 @@ namespace Snd.Sdk.Kubernetes
                 body: JsonSerializer.Serialize(
                     new object[]
                     {
-                        new
-                        {
-                            op = "replace",
-                            path = "/spec/replicas",
-                            value = replicaCount
-                        }
+                            new
+                            {
+                                op = "replace",
+                                path = "/spec/replicas",
+                                value = replicaCount
+                            }
                     }
                 ),
                 type: V1Patch.PatchType.JsonPatch
@@ -422,7 +437,8 @@ namespace Snd.Sdk.Kubernetes
 
         /// <inheritdoc />
         public Source<V1StatefulSet, NotUsed> ScaleOutStatefulSet(string statefulSet, string ns, int replicaCount,
-            TimeSpan minBackOff, TimeSpan maxBackOff, double randomFactor, int maxRestarts, TimeSpan maxRetryInterval)
+            TimeSpan minBackOff, TimeSpan maxBackOff, double randomFactor, int maxRestarts,
+            TimeSpan maxRetryInterval)
         {
             var restartSettings = RestartSettings.Create(minBackoff: minBackOff,
                     maxBackoff: maxBackOff,
@@ -436,21 +452,24 @@ namespace Snd.Sdk.Kubernetes
             var scaleSource = Source.FromTask(this.KubeApi.AppsV1.ListNamespacedStatefulSetAsync(ns))
                 .SelectMany(lst => lst.Items)
                 .Where(ss => ss.Metadata.Name == statefulSet)
-                .SelectAsync(1, ss => this.KubeApi.AppsV1.ReadNamespacedStatefulSetStatusAsync(ss.Metadata.Name, ns))
+                .SelectAsync(1,
+                    ss => this.KubeApi.AppsV1.ReadNamespacedStatefulSetStatusAsync(ss.Metadata.Name, ns))
                 .Select(ss =>
                 {
                     switch (replicaCount, ss.Status.ReadyReplicas.GetValueOrDefault(0))
                     {
                         // scaling to 0 should emit success immediately.
                         case (0, _):
-                            this.logger.LogInformation($"Successfully scaled {statefulSet} in {ns} to {replicaCount}");
+                            this.logger.LogInformation(
+                                $"Successfully scaled {statefulSet} in {ns} to {replicaCount}");
                             return Option<V1StatefulSet>.Create(ss);
                         // scaling to non-zero, while ready replicas is zero, should cause a retry.
                         case (_, 0):
                             throw new StatefulSetNotReadyException($"Stateful set {statefulSet} is not ready yet");
                         // scaling to non-zero, while ready replicas is not zero, should emit success.
                         default:
-                            this.logger.LogInformation($"Successfully scaled {statefulSet} in {ns} to {replicaCount}");
+                            this.logger.LogInformation(
+                                $"Successfully scaled {statefulSet} in {ns} to {replicaCount}");
                             return Option<V1StatefulSet>.Create(ss);
                     }
                 });
@@ -498,7 +517,8 @@ namespace Snd.Sdk.Kubernetes
                 // StatusError is defined here:
                 // https://github.com/kubernetes/kubernetes/blob/068e1642f63a1a8c48c16c18510e8854a4f4e7c5/staging/src/k8s.io/apimachinery/pkg/api/errors/errors.go#L37
                 var returnMessage = JsonSerializer.Deserialize<V1Status>(errors);
-                return (outReader.ReadToEnd(), errReader.ReadToEnd(), k8s.Kubernetes.GetExitCodeOrThrow(returnMessage));
+                return (outReader.ReadToEnd(), errReader.ReadToEnd(),
+                    k8s.Kubernetes.GetExitCodeOrThrow(returnMessage));
             }
         }
 
@@ -550,7 +570,7 @@ namespace Snd.Sdk.Kubernetes
                 body: JsonSerializer.Serialize(
                     new object[]
                     {
-                        patchContent
+                            patchContent
                     })
             );
         }
@@ -564,7 +584,8 @@ namespace Snd.Sdk.Kubernetes
         }
 
         /// <inheritdoc />
-        public Task<object> AnnotateObject(NamespacedCrd namespacedCrd, string annotationKey, string annotationValue,
+        public Task<object> AnnotateObject(NamespacedCrd namespacedCrd, string annotationKey,
+            string annotationValue,
             string objName, string objNamespace)
         {
             return this.KubeApi.CustomObjects.PatchNamespacedCustomObjectAsync(
@@ -574,11 +595,13 @@ namespace Snd.Sdk.Kubernetes
                             metadata = new V1ObjectMeta
                             {
                                 Annotations = new Dictionary<string, string>
-                                {
-                                    { annotationKey, annotationValue }
-                                }
+                                    {
+                                            { annotationKey, annotationValue }
+                                    }
                             }
-                        }, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
+                        },
+                            new JsonSerializerOptions
+                            { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
                         V1Patch.PatchType.MergePatch),
                     namespacedCrd.Group,
                     namespacedCrd.Version,
@@ -615,7 +638,7 @@ namespace Snd.Sdk.Kubernetes
                     {
                         Annotations = new Dictionary<string, string>
                         {
-                            { annotationKey, annotationValue }
+                                { annotationKey, annotationValue }
                         }
                     }
                 }, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
@@ -635,7 +658,8 @@ namespace Snd.Sdk.Kubernetes
                     }
                     else
                     {
-                        this.logger.LogError(err, "Unable to patch a job: {namespace}/{name}", jobNamespace, jobName);
+                        this.logger.LogError(err, "Unable to patch a job: {namespace}/{name}", jobNamespace,
+                            jobName);
                     }
 
                     return null;
@@ -643,7 +667,8 @@ namespace Snd.Sdk.Kubernetes
         }
 
         /// <inheritdoc />
-        public Task<object> RemoveObjectAnnotation(NamespacedCrd namespacedCrd, string annotationKey, string objName,
+        public Task<object> RemoveObjectAnnotation(NamespacedCrd namespacedCrd, string annotationKey,
+            string objName,
             string objNamespace)
         {
             return this.KubeApi.CustomObjects.PatchNamespacedCustomObjectAsync(
@@ -675,7 +700,8 @@ namespace Snd.Sdk.Kubernetes
         /// <inheritdoc />
         public Task<V1Pod> RemoveLabelFromPod(string labelKey, string podName, string podNamespace)
         {
-            return this.KubeApi.CoreV1.PatchNamespacedPodAsync(ObjectMetadataJsonPatch("remove", "labels", labelKey),
+            return this.KubeApi.CoreV1.PatchNamespacedPodAsync(
+                ObjectMetadataJsonPatch("remove", "labels", labelKey),
                 podName,
                 podNamespace);
         }
@@ -692,9 +718,11 @@ namespace Snd.Sdk.Kubernetes
                         .Map(p => p as IMetadata<V1ObjectMeta>),
                 V1Object.SECRET => this.KubeApi.CoreV1.ReadNamespacedSecretAsync(objectName, objectNamespace)
                     .Map(p => p as IMetadata<V1ObjectMeta>),
-                V1Object.STATEFUL_SET => this.KubeApi.AppsV1.ReadNamespacedStatefulSetAsync(objectName, objectNamespace)
+                V1Object.STATEFUL_SET => this.KubeApi.AppsV1
+                    .ReadNamespacedStatefulSetAsync(objectName, objectNamespace)
                     .Map(p => p as IMetadata<V1ObjectMeta>),
-                V1Object.DEPLOYMENT => this.KubeApi.AppsV1.ReadNamespacedDeploymentAsync(objectName, objectNamespace)
+                V1Object.DEPLOYMENT => this.KubeApi.AppsV1
+                    .ReadNamespacedDeploymentAsync(objectName, objectNamespace)
                     .Map(p => p as IMetadata<V1ObjectMeta>),
                 _ => null
             };
@@ -711,7 +739,8 @@ namespace Snd.Sdk.Kubernetes
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
-        public Task<string> GetV1ObjectAnnotationValue(string annotationKey, string objectName, string objectNamespace,
+        public Task<string> GetV1ObjectAnnotationValue(string annotationKey, string objectName,
+            string objectNamespace,
             V1Object v1Object)
         {
             return GetCoreV1ObjectMeta(v1Object, objectName, objectNamespace)
