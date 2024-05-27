@@ -17,13 +17,13 @@ public class RedisClient : IRedisClient
     /// <summary>
     /// Initializes a new instance of the RedisClient class.
     /// </summary>
-    public RedisClient(string host, int databaseNumber, int port = 6380)
+    public RedisClient(string host, int databaseNumber, int port = 6380, bool ssl = true)
     {
         var options = new ConfigurationOptions
         {
             EndPoints = { { host, port } },
             Password = Environment.GetEnvironmentVariable("PROTEUS__CACHE_REDIS_PASSWORD"),
-            Ssl = true,
+            Ssl = ssl,
             DefaultDatabase = databaseNumber
         };
 
@@ -31,7 +31,7 @@ public class RedisClient : IRedisClient
     }
 
     /// <inheritdoc />
-    public bool MultiExists(List<string> keys)
+    public bool MultiExists(HashSet<string> keys)
     {
         var db = redis.GetDatabase();
         int existsCount = 0;
@@ -47,6 +47,7 @@ public class RedisClient : IRedisClient
         return existsCount == keys.Count;
     }
 
+    /// <inheritdoc />
     public void Evict(string key)
     {
         var db = redis.GetDatabase();
@@ -94,5 +95,14 @@ public class RedisClient : IRedisClient
     {
         var db = redis.GetDatabase();
         db.KeyExpire(key, expiresAfter);
+    }
+
+    /// <summary>
+    /// Gets the ConnectionMultiplexer instance used by this RedisClient.
+    /// </summary>
+    /// <returns>The ConnectionMultiplexer instance.</returns>
+    public ConnectionMultiplexer GetConnectionMultiplexer()
+    {
+        return redis;
     }
 }

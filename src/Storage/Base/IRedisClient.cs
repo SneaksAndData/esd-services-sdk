@@ -11,7 +11,7 @@ public interface IRedisClient
     /// <summary>
     /// Checks if all keys exist in Redis.
     /// </summary>
-    bool MultiExists(List<string> keys);
+    bool MultiExists(HashSet<string> keys);
 
     /// <summary>
     /// Removes a key from Redis.

@@ -20,13 +20,13 @@ public class RedisSubscriberClient : IRedisSubscriberClient
     /// <inheritdoc />
     public void Subscribe(string channel, Action<RedisChannel, RedisValue> handler)
     {
-        subscriber.Subscribe(channel, handler);
+        subscriber.SubscribeAsync(channel, handler);
     }
 
     /// <inheritdoc />
     public void Unsubscribe(string channel)
     {
-        subscriber.Unsubscribe(channel);
+        subscriber.UnsubscribeAsync(channel);
     }
 
 }
