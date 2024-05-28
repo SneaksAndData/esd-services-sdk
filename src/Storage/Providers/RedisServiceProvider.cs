@@ -18,7 +18,7 @@ public static class RedisServiceProvider
     /// <param name="services">Service collection (DI container).</param>
     /// <param name="appConfiguration">Application configuration with "RedisServiceProvider" section configured according to <see cref="RedisServiceProvider"/>.</param>
     /// <returns></returns>
-    public static IServiceCollection AddRedisStorage(this IServiceCollection services, IConfiguration appConfiguration)
+    public static IServiceCollection AddRedisCache(this IServiceCollection services, IConfiguration appConfiguration)
     {
         var redisConfiguration = new RedisConfiguration();
         appConfiguration.GetSection(nameof(RedisServiceProvider)).Bind(redisConfiguration);
