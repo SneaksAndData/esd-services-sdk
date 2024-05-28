@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Streams.Dsl;
@@ -58,7 +57,7 @@ public class RedisClient : IRedisClient
     {
         var db = GetDatabase();
         var redisKeys = keys.ConvertAll(k => (RedisKey)k).ToArray();
-      return Source.FromTask(db.StringGetAsync(redisKeys)).SelectMany(k => k);
+        return Source.FromTask(db.StringGetAsync(redisKeys)).SelectMany(k => k);
     }
 
     /// <inheritdoc />
