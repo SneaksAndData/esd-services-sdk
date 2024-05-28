@@ -13,14 +13,14 @@ namespace SnD.Sdk.Storage.Cache;
 /// Redis client for performing operations on Redis.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class RedisClient : IRedisClient
+public class RedisService : IRedisService
 {
     private readonly IConnectionMultiplexer redis;
 
     /// <summary>
     /// Initializes a new instance of the RedisClient class.
     /// </summary>
-    public RedisClient(IConnectionMultiplexer redis)
+    public RedisService(IConnectionMultiplexer redis)
     {
         this.redis = redis;
     }

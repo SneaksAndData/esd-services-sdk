@@ -10,7 +10,7 @@ namespace Snd.Sdk.Storage.Base;
 /// <summary>
 /// Interface for Redis client operations.
 /// </summary>
-public interface IRedisClient
+public interface IRedisService
 {
     /// <summary>
     /// Gets the Redis database instance.

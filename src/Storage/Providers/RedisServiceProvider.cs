@@ -7,8 +7,17 @@ using StackExchange.Redis;
 
 namespace Snd.Sdk.Storage.Providers;
 
+/// <summary>
+/// Provider for Redis service.
+/// </summary>
 public static class RedisServiceProvider
 {
+    /// <summary>
+    /// Adds Redis connection to the DI container.
+    /// </summary>
+    /// <param name="services">Service collection (DI container).</param>
+    /// <param name="appConfiguration">Application configuration with "RedisServiceProvider" section configured according to <see cref="RedisServiceProvider"/>.</param>
+    /// <returns></returns>
     public static IServiceCollection AddRedisStorage(this IServiceCollection services, IConfiguration appConfiguration)
     {
         var redisConfiguration = new RedisConfiguration();
@@ -24,6 +33,6 @@ public static class RedisServiceProvider
 
         services.AddSingleton(typeof(IConnectionMultiplexer), ConnectionMultiplexer.Connect(options));
 
-        return services.AddSingleton<IRedisClient, RedisClient>();
+        return services.AddSingleton<IRedisService, RedisService>();
     }
 }
