@@ -24,7 +24,7 @@ public class RedisConfiguration
     /// <summary>
     /// Redis server connection password.
     /// </summary>
-    public string Password => EnvironmentExtensions.GetDomainEnvironmentVariable("REDIS_CACHE_PASSWORD");i
+    public string Password => EnvironmentExtensions.GetDomainEnvironmentVariable("REDIS_CACHE_PASSWORD");
 
     /// <summary>
     /// Enable SSL connectivity.
