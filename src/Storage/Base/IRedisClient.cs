@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Akka;
+using Akka.Streams.Dsl;
 using StackExchange.Redis;
 
 namespace Snd.Sdk.Storage.Base;
@@ -11,9 +13,9 @@ namespace Snd.Sdk.Storage.Base;
 public interface IRedisClient
 {
     /// <summary>
-    /// Checks if all keys exist in Redis.
+    /// Gets the Redis database instance.
     /// </summary>
-   Task<bool> MultiExistsAsync(HashSet<string> keys);
+    IDatabase GetDatabase();
 
     /// <summary>
     /// Removes a key from Redis.
@@ -33,7 +35,7 @@ public interface IRedisClient
     /// <summary>
     /// Retrieves multiple values from Redis by their keys.
     /// </summary>
-    Task<RedisValue[]> MultiGetAsync(List<string> keys);
+    Source<RedisValue, NotUsed> MultiGetAsync(List<string> keys);
 
     /// <summary>
     /// Sets a key-value pair in Redis with an expiration time.
