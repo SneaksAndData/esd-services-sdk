@@ -31,7 +31,7 @@ public static class RedisServiceProvider
             DefaultDatabase = redisConfiguration.DatabaseNumber
         };
 
-        services.AddSingleton(typeof(IConnectionMultiplexer), ConnectionMultiplexer.Connect(options));
+        services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(options));
 
         return services.AddSingleton<IRedisService, RedisService>();
     }
