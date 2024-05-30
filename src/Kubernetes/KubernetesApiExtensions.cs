@@ -13,6 +13,7 @@ using k8s.Autorest;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Snd.Sdk.Helpers;
 using Snd.Sdk.Tasks;
 using Policy = Polly.Policy;
 
@@ -38,7 +39,7 @@ namespace Snd.Sdk.Kubernetes
             var jobMeta = new V1ObjectMeta(name: jobName, labels: new Dictionary<string, string>
             {
                 {
-                    "api.sneaksanddata.io/proteus-version",
+                    "api.sneaksanddata.io/app-version",
                     Environment.GetEnvironmentVariable("APPLICATION_VERSION") ?? "0.0.0"
                 }
             });
@@ -52,7 +53,7 @@ namespace Snd.Sdk.Kubernetes
                     serviceAccountName: "default",
                     containers: new List<V1Container>
                     {
-                        new V1Container(
+                        new(
                             name: jobName,
                             image: imageName,
                             resources: new V1ResourceRequirements(limits: resourceQuantities,
@@ -291,8 +292,8 @@ namespace Snd.Sdk.Kubernetes
             var newAnnotations = replace switch
             {
                 true => annotations,
-                false => (job.Metadata.Annotations ?? new Dictionary<string, string>())
-                    .Concat(annotations).ToDictionary(kv => kv.Key, kv => kv.Value)
+                false => (job.Metadata.Annotations ?? new Dictionary<string, string>()).DeepClone()
+                    .MergeDifference(annotations)
             };
 
             job.Metadata.Annotations = newAnnotations;
@@ -375,6 +376,58 @@ namespace Snd.Sdk.Kubernetes
         }
 
         /// <summary>
+        /// Adds or updates volumes and volume mounts to the V1Job object's template specification that target hostPath paths.
+        /// </summary>
+        /// <param name="job">The V1Job object to modify.</param>
+        /// <param name="volumeMap">A dictionary of volume name to hostPath path (ends with /).</param>
+        /// <returns>The modified V1Job object.</returns>
+        public static V1Job WithHostPathVolumes(this V1Job job, Dictionary<string, string> volumeMap)
+        {
+            job.Spec.Template.Spec.Volumes ??= new List<V1Volume>();
+            job.Spec.Template.Spec.Containers[0].VolumeMounts ??= new List<V1VolumeMount>();
+
+            foreach (var (volumeName, hostPath) in volumeMap)
+            {
+                var existingVolume = job.Spec.Template.Spec.Volumes.FirstOrDefault(vol => vol.Name == volumeName);
+                if (existingVolume != null)
+                {
+                    job.Spec.Template.Spec.Volumes[job.Spec.Template.Spec.Volumes.IndexOf(existingVolume)].HostPath =
+                        new V1HostPathVolumeSource
+                        {
+                            Path = hostPath
+                        };
+                }
+                else
+                {
+                    job.Spec.Template.Spec.Volumes.Add(new V1Volume
+                    {
+                        Name = volumeName,
+                        HostPath = new V1HostPathVolumeSource { Path = hostPath }
+                    });
+                }
+
+                var existingMount = job.Spec.Template.Spec.Containers[0].VolumeMounts
+                    .FirstOrDefault(vol => vol.Name == volumeName);
+
+                if (existingMount != null)
+                {
+                    job.Spec.Template.Spec.Containers[0]
+                        .VolumeMounts[job.Spec.Template.Spec.Containers[0].VolumeMounts.IndexOf(existingMount)]
+                        .MountPath = hostPath.TrimEnd('/');
+                }
+                else
+                {
+                    job.Spec.Template.Spec.Containers[0].VolumeMounts.Add(new V1VolumeMount(
+                        mountPath: hostPath.TrimEnd('/'),
+                        name: volumeName
+                    ));
+                }
+            }
+
+            return job;
+        }
+
+        /// <summary>
         /// Adds or updates ConfigMap volumes in the V1Job object's template specification based on the given volume map.
         /// </summary>
         /// <param name="job">The V1Job object to modify.</param>
@@ -410,16 +463,31 @@ namespace Snd.Sdk.Kubernetes
         /// <summary>
         /// Adds an owner reference to the job.
         /// </summary>
-        /// <param name="job">The job object to modify</param>
-        /// <param name="owner">Kubernetes object added as owner to the job</param>
-        /// <returns></returns>
-        public static V1Job WithOwnerReference(this V1Job job, IKubernetesObject<V1ObjectMeta> owner)
+        /// <param name="job">The Kubernetes Job object to add the owner reference to.</param>
+        /// <param name="apiVersion">The API version of the owner object.</param>
+        /// <param name="kind">The kind of the owner object.</param>
+        /// <param name="metadata">The metadata of the owner object.</param>
+        /// <returns>The Kubernetes Job object with the added owner reference.</returns>
+        private static V1Job WithOwnerReference(this V1Job job, string apiVersion, string kind, V1ObjectMeta metadata)
         {
             job.Metadata.OwnerReferences ??= new List<V1OwnerReference>();
-            job.Metadata.OwnerReferences.Add(new V1OwnerReference(owner.ApiVersion, owner.Kind, owner.Metadata.Name,
-                owner.Metadata.Uid));
+            job.Metadata.OwnerReferences.Add(new V1OwnerReference(apiVersion, kind, metadata.Name,
+                metadata.Uid));
             return job;
         }
+
+
+        /// <summary>
+        /// Adds an Job owner object reference to a Job.
+        /// </summary>
+        /// <param name="job">The Kubernetes Job object to add the owner reference to.</param>
+        /// <param name="metadata">The metadata of the Job owner object.</param>
+        /// <returns>The Kubernetes Job object with the added owner reference.</returns>
+        public static V1Job WithJobOwnerReference(this V1Job job, V1ObjectMeta metadata)
+        {
+            return WithOwnerReference(job, "batch/v1", "Job", metadata);
+        }
+
 
         /// <summary>
         /// Adds the billing id annotation to the job.
@@ -530,7 +598,8 @@ namespace Snd.Sdk.Kubernetes
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "API Server responded with HTTP 429. Will retry in {retryInSeconds} seconds", span.TotalSeconds);
+                            "API Server responded with HTTP 429. Will retry in {retryInSeconds} seconds",
+                            span.TotalSeconds);
                         return Task.CompletedTask;
                     });
 
@@ -561,7 +630,8 @@ namespace Snd.Sdk.Kubernetes
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "Transport level error occured when connecting to the API Server. Will retry in {retryInSeconds} seconds", span.TotalSeconds);
+                            "Transport level error occured when connecting to the API Server. Will retry in {retryInSeconds} seconds",
+                            span.TotalSeconds);
                         return Task.CompletedTask;
                     });
 
