@@ -73,5 +73,4 @@ public class RedisService : IRedisService
         var db = redis.GetDatabase();
         return db.KeyExpireAsync(key, expiresAfter);
     }
-
 }
