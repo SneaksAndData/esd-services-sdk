@@ -23,7 +23,7 @@ public class RedisStreamConsumerSource : GraphStage<SourceShape<StreamEntry>>
     /// </summary>
     /// <returns></returns>
     public static Source<StreamEntry, NotUsed> Create(string streamName,
-        IConnectionMultiplexer redis, string initialId = "0-0", int count = 1,CommandFlags flags = CommandFlags.None, TimeSpan? pollInterval = null)
+        IConnectionMultiplexer redis, string initialId = "0-0", int count = 1, CommandFlags flags = CommandFlags.None, TimeSpan? pollInterval = null)
     {
         return Source.FromGraph(new RedisStreamConsumerSource(streamName, redis, initialId, count, flags, pollInterval));
     }
@@ -35,7 +35,7 @@ public class RedisStreamConsumerSource : GraphStage<SourceShape<StreamEntry>>
     private readonly CommandFlags flags;
     private readonly TimeSpan pollInterval;
 
-    public RedisStreamConsumerSource(string streamName, IConnectionMultiplexer redis, string initialId, int? count,  CommandFlags? flags, TimeSpan? pollInterval = null)
+    public RedisStreamConsumerSource(string streamName, IConnectionMultiplexer redis, string initialId, int? count, CommandFlags? flags, TimeSpan? pollInterval = null)
     {
         this.streamName = streamName;
         this.redis = redis;
@@ -77,7 +77,7 @@ public class RedisStreamConsumerSource : GraphStage<SourceShape<StreamEntry>>
         }
 
         // Method to pull data from the stream
-        public void PullStream() => _source.redis.GetDatabase().StreamReadAsync(_source.streamName, _source.initialId, _source.count,  _source.flags)
+        public void PullStream() => _source.redis.GetDatabase().StreamReadAsync(_source.streamName, _source.initialId, _source.count, _source.flags)
             .ContinueWith(_messagesReceived);
 
 
