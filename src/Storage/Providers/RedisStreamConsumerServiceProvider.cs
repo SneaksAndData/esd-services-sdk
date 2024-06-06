@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Snd.Sdk.Storage.Base;
 using SnD.Sdk.Storage.Cache;
 using Snd.Sdk.Storage.Providers.Configurations;
@@ -34,3 +36,4 @@ public static class RedisStreamConsumerServiceProvider
         return services.AddSingleton<IRedisStreamConsumerService, RedisStreamConsumerService>();
     }
 }
+
