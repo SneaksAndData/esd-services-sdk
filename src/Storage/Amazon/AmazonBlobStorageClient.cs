@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.Extensions.Logging;
 using Snd.Sdk.Helpers;
 using Snd.Sdk.Tasks;
 using Snd.Sdk.Storage.Base;
@@ -17,14 +18,17 @@ namespace Snd.Sdk.Storage.Amazon;
 public class AmazonBlobStorageWriter : IBlobStorageWriter
 {
     private readonly IAmazonS3 client;
+    private readonly ILogger<AmazonBlobStorageWriter> logger;
 
     /// <summary>
     /// Creates a new instance of S3BlobStorageService.
     /// </summary>
     /// <param name="client">Authenticated S3 AWS client instance</param>
-    public AmazonBlobStorageWriter(IAmazonS3 client)
+    /// <param name="logger">Logger</param>
+    public AmazonBlobStorageWriter(IAmazonS3 client, ILogger<AmazonBlobStorageWriter> logger)
     {
         this.client = client;
+        this.logger = logger;
     }
 
     /// <inheritdoc/>
@@ -45,6 +49,10 @@ public class AmazonBlobStorageWriter : IBlobStorageWriter
             Name = blobName,
             ContentHash = result.ChecksumSHA256,
             LastModified = DateTimeOffset.UtcNow
+        }, exception =>
+        {
+            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}", blobName, path.Bucket);
+            return default;
         });
     }
 
@@ -58,11 +66,15 @@ public class AmazonBlobStorageWriter : IBlobStorageWriter
             Key = path.Join(blobName).ObjectKey,
             ContentBody = text
         };
-        return client.PutObjectAsync(request).Map(result => new UploadedBlob
+        return client.PutObjectAsync(request).TryMap(result => new UploadedBlob
         {
             Name = blobName,
             ContentHash = result.ChecksumSHA256,
             LastModified = DateTimeOffset.UtcNow
+        }, exception =>
+        {
+            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}", blobName, path.Bucket);
+            return default;
         });
     }
 }
