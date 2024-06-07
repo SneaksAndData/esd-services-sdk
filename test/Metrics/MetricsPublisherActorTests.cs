@@ -28,7 +28,6 @@ public class MetricsActorTests : TestKit
 
     }
 
-
     [Fact]
     public async Task TestMetricsAdded()
     {
@@ -176,7 +175,7 @@ public class MetricsActorTests : TestKit
         {
             metricsService.Count(name, value, tags);
         }
-        
+
         protected override void PostStop()
         {
             this.tcs?.TrySetResult();
