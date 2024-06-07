@@ -38,7 +38,7 @@ public class MetricsActorTests : TestKit
             It.IsAny<SortedDictionary<string, string>>())).Callback(() => this.tcs.TrySetResult());
         var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
                 TimeSpan.Zero,
-                TimeSpan.FromSeconds(10), this.metricsServiceMock.Object)),
+                TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, null)),
             nameof(MetricsPublisherActor));
 
         // Act
@@ -66,7 +66,8 @@ public class MetricsActorTests : TestKit
 
         var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
                 TimeSpan.Zero,
-                TimeSpan.FromSeconds(10), this.metricsServiceMock.Object)),
+                TimeSpan.FromSeconds(10),
+                this.metricsServiceMock.Object, null)),
             nameof(MetricsPublisherActor));
 
         // Act
@@ -85,12 +86,12 @@ public class MetricsActorTests : TestKit
     public async Task TestRemoveMetricsMessage()
     {
         // Arrange
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestStoppingMetricsPublisherActor(
+        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
                 TimeSpan.Zero,
                 TimeSpan.MaxValue,
                 this.metricsServiceMock.Object,
                 this.tcs)),
-            nameof(TestStoppingMetricsPublisherActor));
+            nameof(TestMetricsPublisherActor));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -110,12 +111,12 @@ public class MetricsActorTests : TestKit
     public async Task TestRemoveNonExisingMetric()
     {
         // Arrange
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestStoppingMetricsPublisherActor(
+        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
                 TimeSpan.Zero,
                 TimeSpan.MaxValue,
                 this.metricsServiceMock.Object,
                 this.tcs)),
-            nameof(TestStoppingMetricsPublisherActor));
+            nameof(TestMetricsPublisherActor));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -135,12 +136,12 @@ public class MetricsActorTests : TestKit
     public async Task TestBrokenMessage()
     {
         // Arrange
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestStoppingMetricsPublisherActor(
+        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
                 TimeSpan.Zero,
                 TimeSpan.MaxValue,
                 this.metricsServiceMock.Object,
                 this.tcs)),
-            nameof(TestStoppingMetricsPublisherActor));
+            nameof(TestMetricsPublisherActor));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -163,42 +164,22 @@ public class MetricsActorTests : TestKit
 
     private class TestMetricsPublisherActor : MetricsPublisherActor
     {
-        public TestMetricsPublisherActor(TimeSpan initialDelay, TimeSpan emitInterval, MetricsService metricsService)
-            : base(initialDelay, emitInterval, metricsService)
-        {
-        }
-
-        protected override void EmitMetric(MetricsService metricsService,
-            string name,
-            int value,
-            SortedDictionary<string, string> tags)
-        {
-            metricsService.Count(name, value, tags);
-        }
-    }
-
-    private class TestStoppingMetricsPublisherActor : MetricsPublisherActor
-    {
         private readonly TaskCompletionSource tcs;
-
-        public TestStoppingMetricsPublisherActor(TimeSpan initialDelay,
-            TimeSpan emitInterval, MetricsService metricsService, TaskCompletionSource tcs)
+        public TestMetricsPublisherActor(TimeSpan initialDelay, TimeSpan emitInterval, MetricsService metricsService,
+            TaskCompletionSource tcs)
             : base(initialDelay, emitInterval, metricsService)
         {
             this.tcs = tcs;
         }
 
-        protected override void EmitMetric(MetricsService metricsService,
-            string name,
-            int value,
-            SortedDictionary<string, string> tags)
+        protected override void EmitMetric(MetricsService metricsService, string name, int value, SortedDictionary<string, string> tags)
         {
             metricsService.Count(name, value, tags);
         }
-
+        
         protected override void PostStop()
         {
-            this.tcs.TrySetResult();
+            this.tcs?.TrySetResult();
         }
     }
 }
