@@ -51,7 +51,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
 {
     /// <inheritdoc cref="IWithTimers.Timers"/>
     public ITimerScheduler Timers { get; set; }
-    
+
     private readonly Dictionary<string, MetricRegistration> streamClassMetrics = new();
     private readonly ILoggingAdapter Log = Context.GetLogger();
     private readonly TimeSpan initialDelay;
@@ -69,7 +69,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
         this.initialDelay = initialDelay;
         this.emitInterval = emitInterval;
         this.metricsService = metricsService;
-        
+
         this.Receive<AddMetricMessage>(this.HandleAddMetricMessage);
         this.Receive<RemoveMetricMessage>(this.HandleRemoveMetricMessage);
         this.Receive<EmitMetricsMessage>(_ => this.HandleEmitMetricsMessage());
@@ -84,21 +84,21 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
     /// </summary>
     protected abstract void EmitMetric(MetricsService metricsService, string name, int value,
         SortedDictionary<string, string> tags);
-    
+
     private void HandleAddMetricMessage(AddMetricMessage m)
     {
         this.Log.Debug("Adding stream class metrics for {streamKindRef}", m.Key);
-        if(m.MetricTags == null || m.MetricName == null || m.Key == null)
+        if (m.MetricTags == null || m.MetricName == null || m.Key == null)
         {
-            this.Log.Warning("Skip malformed {messageName} for {key} with value: {@message}", 
+            this.Log.Warning("Skip malformed {messageName} for {key} with value: {@message}",
                 nameof(AddMetricMessage),
                 m.Key,
                 m);
             return;
         }
-        this.streamClassMetrics[m.Key] = new MetricRegistration(m.MetricName,  m.MetricTags, m.MetricValue);
+        this.streamClassMetrics[m.Key] = new MetricRegistration(m.MetricName, m.MetricTags, m.MetricValue);
     }
-    
+
     private void HandleRemoveMetricMessage(RemoveMetricMessage m)
     {
         if (!this.streamClassMetrics.Remove(m.Key))
@@ -106,7 +106,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
             this.Log.Warning("Stream class {streamKindRef} not found in metrics collection", m.Key);
         }
     }
-    
+
     private void HandleEmitMetricsMessage()
     {
         this.Log.Debug("Start emitting stream class metrics");
