@@ -105,7 +105,7 @@ public class MetricsActorTests : TestKit
             It.IsAny<int>(),
             It.IsAny<SortedDictionary<string, string>>()), Times.Exactly(1));
     }
-    
+
     [Fact]
     public async Task TestRemoveNonExisingMetric()
     {
@@ -130,7 +130,7 @@ public class MetricsActorTests : TestKit
             It.IsAny<int>(),
             It.IsAny<SortedDictionary<string, string>>()), Times.Exactly(2));
     }
-    
+
     [Fact]
     public async Task TestBrokenMessage()
     {

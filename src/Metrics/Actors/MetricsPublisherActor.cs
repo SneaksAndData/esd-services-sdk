@@ -64,7 +64,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
     /// <param name="initialDelay">Initial delay before begin to emit the metrics.</param>
     /// <param name="emitInterval">Interval to emit the metrics.</param>
     /// <param name="metricsService">The metrics service instance used to emit the metrics (<see cref="MetricsService"/>.</param>
-    public MetricsPublisherActor(TimeSpan initialDelay, TimeSpan emitInterval, MetricsService metricsService)
+    protected MetricsPublisherActor(TimeSpan initialDelay, TimeSpan emitInterval, MetricsService metricsService)
     {
         this.initialDelay = initialDelay;
         this.emitInterval = emitInterval;
