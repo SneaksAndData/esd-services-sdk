@@ -43,13 +43,14 @@ public class MetricsActorTests : TestKit
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
+        subject.Tell(new AddMetricMessage("test2", "test", new()));
         subject.Tell(new EmitMetricsMessage());
         await this.tcs.Task;
 
         // Assert
         this.metricsServiceMock.Verify(ms => ms.Count(It.IsAny<string>(),
             It.IsAny<int>(),
-            It.IsAny<SortedDictionary<string, string>>()), Times.AtLeast(1));
+            It.IsAny<SortedDictionary<string, string>>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -95,6 +96,55 @@ public class MetricsActorTests : TestKit
         subject.Tell(new AddMetricMessage("test", "test", new()));
         subject.Tell(new EmitMetricsMessage());
         subject.Tell(new RemoveMetricMessage("test"));
+        subject.Tell(new EmitMetricsMessage());
+        subject.Tell(PoisonPill.Instance);
+        await this.tcs.Task;
+
+        // Assert
+        this.metricsServiceMock.Verify(ms => ms.Count(It.IsAny<string>(),
+            It.IsAny<int>(),
+            It.IsAny<SortedDictionary<string, string>>()), Times.Exactly(1));
+    }
+    
+    [Fact]
+    public async Task TestRemoveNonExisingMetric()
+    {
+        // Arrange
+        var subject = this.Sys.ActorOf(Props.Create(() => new TestStoppingMetricsPublisherActor(
+                TimeSpan.Zero,
+                TimeSpan.MaxValue,
+                this.metricsServiceMock.Object,
+                this.tcs)),
+            nameof(TestStoppingMetricsPublisherActor));
+
+        // Act
+        subject.Tell(new AddMetricMessage("test", "test", new()));
+        subject.Tell(new EmitMetricsMessage());
+        subject.Tell(new RemoveMetricMessage("not-exists"));
+        subject.Tell(new EmitMetricsMessage());
+        subject.Tell(PoisonPill.Instance);
+        await this.tcs.Task;
+
+        // Assert
+        this.metricsServiceMock.Verify(ms => ms.Count(It.IsAny<string>(),
+            It.IsAny<int>(),
+            It.IsAny<SortedDictionary<string, string>>()), Times.Exactly(2));
+    }
+    
+    [Fact]
+    public async Task TestBrokenMessage()
+    {
+        // Arrange
+        var subject = this.Sys.ActorOf(Props.Create(() => new TestStoppingMetricsPublisherActor(
+                TimeSpan.Zero,
+                TimeSpan.MaxValue,
+                this.metricsServiceMock.Object,
+                this.tcs)),
+            nameof(TestStoppingMetricsPublisherActor));
+
+        // Act
+        subject.Tell(new AddMetricMessage("test", "test", new()));
+        subject.Tell(new AddMetricMessage(null, null, null));
         subject.Tell(new EmitMetricsMessage());
         subject.Tell(PoisonPill.Instance);
         await this.tcs.Task;

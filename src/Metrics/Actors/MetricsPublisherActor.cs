@@ -52,7 +52,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
     /// <inheritdoc cref="IWithTimers.Timers"/>
     public ITimerScheduler Timers { get; set; }
 
-    private readonly Dictionary<string, MetricRegistration> streamClassMetrics = new();
+    private readonly Dictionary<string, MetricRegistration> metrics = new();
     private readonly ILoggingAdapter Log = Context.GetLogger();
     private readonly TimeSpan initialDelay;
     private readonly TimeSpan emitInterval;
@@ -96,12 +96,12 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
                 m);
             return;
         }
-        this.streamClassMetrics[m.Key] = new MetricRegistration(m.MetricName, m.MetricTags, m.MetricValue);
+        this.metrics[m.Key] = new MetricRegistration(m.MetricName, m.MetricTags, m.MetricValue);
     }
 
     private void HandleRemoveMetricMessage(RemoveMetricMessage m)
     {
-        if (!this.streamClassMetrics.Remove(m.Key))
+        if (!this.metrics.Remove(m.Key))
         {
             this.Log.Warning("Stream class {streamKindRef} not found in metrics collection", m.Key);
         }
@@ -110,7 +110,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
     private void HandleEmitMetricsMessage()
     {
         this.Log.Debug("Start emitting stream class metrics");
-        foreach (var (_, metric) in this.streamClassMetrics)
+        foreach (var (_, metric) in this.metrics)
         {
             try
             {
