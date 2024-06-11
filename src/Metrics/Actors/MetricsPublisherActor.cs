@@ -124,9 +124,12 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
         }
     }
 
-    /// <inheritdoc cref="ReceiveActor.PreStart"/>
+    /// <summary>
+    /// Starts the timer before the actor starts processing messages.
+    /// </summary>
     protected override void PreStart()
     {
+        base.PreStart();
         this.Timers.StartPeriodicTimer(nameof(EmitMetricsMessage),
             new EmitMetricsMessage(),
             this.initialDelay,
