@@ -2,6 +2,7 @@
 using k8s.Models;
 using Snd.Sdk.Kubernetes;
 using Xunit;
+using System.Linq;
 
 namespace Snd.Sdk.Tests.Kubernetes;
 
@@ -59,7 +60,7 @@ public class KubernetesApiExtensionsTests
     [Theory]
     [InlineData("RetryJob", 1, "RetryJob", 2, "RetryJob", 3)]
     [InlineData("Ignore", 127, "FailJob", 255, "FailJob", 254)]
-    public void WithPolicyFailureExitCodes(
+    public void WithPodPolicyFailureExitCodes(
         string action1, int exitCode1, string action2, int exitCode2, string action3, int exitCode3)
     {
         // Arrange
@@ -72,14 +73,18 @@ public class KubernetesApiExtensionsTests
         };
 
         // Act
-        var result = job.WithPolicyFailureExitCodes(actionExitCodeId);
+        var result = job.WithPodPolicyFailureExitCodes(actionExitCodeId);
 
         // Assert
-        Assert.Equal(2, result.Spec.PodFailurePolicy.Rules.Count);
-        Assert.Equal(action1, result.Spec.PodFailurePolicy.Rules[0].Action);
-        Assert.Equal(new List<int> { exitCode1, exitCode2 }, result.Spec.PodFailurePolicy.Rules[0].OnExitCodes.Values);
-        Assert.Equal(new List<int> { exitCode3 }, result.Spec.PodFailurePolicy.Rules[1].OnExitCodes.Values);
-        Assert.Equal(action3, result.Spec.PodFailurePolicy.Rules[1].Action);
-        Assert.Equal(new List<int> { exitCode3 }, result.Spec.PodFailurePolicy.Rules[1].OnExitCodes.Values);
+        var groupedActions = actionExitCodeId.GroupBy(aec => aec.action).ToList();
+
+        Assert.Equal(groupedActions.Count, result.Spec.PodFailurePolicy.Rules.Count);
+
+        for (int i = 0; i < groupedActions.Count; i++)
+        {
+            Assert.Equal(groupedActions[i].Key, result.Spec.PodFailurePolicy.Rules[i].Action);
+            Assert.Equal(groupedActions[i].Select(aec => aec.exitCode).Distinct().ToList(),
+                result.Spec.PodFailurePolicy.Rules[i].OnExitCodes.Values);
+        }
     }
 }

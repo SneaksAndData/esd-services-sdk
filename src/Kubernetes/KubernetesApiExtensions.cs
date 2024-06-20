@@ -507,18 +507,21 @@ namespace Snd.Sdk.Kubernetes
         /// Adds a policy failure action and exit codes to the job.
         /// </summary>
         /// <param name="job">The job object to modify.</param>
+        /// <param name="actionExitCodeId">A list with all action names and corresponding exit code number.</param>
         /// <returns>The Kubernetes Job object with added pod failure policy rules.</returns>>
-        public static V1Job WithPolicyFailureExitCodes(this V1Job job,
-            List<(string action, int exitCode)> actionExitCodeId)
+        public static V1Job WithPodPolicyFailureExitCodes(this V1Job job, List<(string action, int exitCode)> actionExitCodeId)
         {
             var groupedActions = actionExitCodeId.GroupBy(aec => aec.action);
 
-            job.Spec.PodFailurePolicy.Rules = groupedActions.Select(group => new V1PodFailurePolicyRule
+            job.Spec ??= new V1JobSpec();
+            job.Spec.PodFailurePolicy ??= new V1PodFailurePolicy();
+
+            job.Spec.PodFailurePolicy.Rules = groupedActions.Select(actionName => new V1PodFailurePolicyRule
             {
-                Action = group.Key,
+                Action = actionName.Key,
                 OnExitCodes = new V1PodFailurePolicyOnExitCodesRequirement
                 {
-                    Values = group.Select(aec => aec.exitCode).Distinct().ToList()
+                    Values = actionName.Select(aec => aec.exitCode).Distinct().ToList()
                 }
             }).ToList();
 
