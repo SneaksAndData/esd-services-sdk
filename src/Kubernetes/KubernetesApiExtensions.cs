@@ -511,14 +511,14 @@ namespace Snd.Sdk.Kubernetes
         public static V1Job WithPolicyFailureExitCodes(this V1Job job,
             List<(string action, int exitCode)> actionExitCodeId)
         {
-            var groupedActionExitCodes = actionExitCodeId.GroupBy(aec => aec.exitCode);
+            var groupedActions = actionExitCodeId.GroupBy(aec => aec.action);
 
-            job.Spec.PodFailurePolicy.Rules = groupedActionExitCodes.Select(group => new
+            job.Spec.PodFailurePolicy.Rules = groupedActions.Select(group => new V1PodFailurePolicyRule
             {
-                action = group.Key,
-                onExitCodes = new
+                Action = group.Key,
+                OnExitCodes = new V1PodFailurePolicyOnExitCodesRequirement
                 {
-                    values = group.Select(aec => aec.exitCode).ToList()
+                    Values = group.Select(aec => aec.exitCode).Distinct().ToList()
                 }
             }).ToList();
 
