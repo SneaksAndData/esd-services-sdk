@@ -2,6 +2,7 @@
 using k8s.Models;
 using Snd.Sdk.Kubernetes;
 using Xunit;
+using System;
 using System.Linq;
 
 namespace Snd.Sdk.Tests.Kubernetes;
@@ -56,35 +57,32 @@ public class KubernetesApiExtensionsTests
         Assert.Equal(expected, newJob.Spec.Template.Metadata.Annotations);
     }
 
-
     [Theory]
-    [InlineData("RetryJob", 1, "RetryJob", 2, "RetryJob", 3)]
-    [InlineData("Ignore", 127, "FailJob", 255, "FailJob", 254)]
+    [InlineData("RetryJob", new[] { 1, 2, 3 }, "Ignore", new[] { 127 }, "FailJob", new[] { 255, 254 })]
     public void WithPodPolicyFailureExitCodes(
-        string action1, int exitCode1, string action2, int exitCode2, string action3, int exitCode3)
+        string action1, int[] exitCodes1, string action2, int[] exitCodes2, string action3, int[] exitCodes3)
     {
         // Arrange
         var job = new V1Job();
-        var actionExitCodeId = new List<(string action, int exitCode)>
+        var actions = new Dictionary<ValueTuple<string, List<int>>, ValueType>
         {
-            (action1, exitCode1),
-            (action2, exitCode2),
-            (action3, exitCode3)
+            { (action1, exitCodes1.ToList()), default(ValueType) },
+            { (action2, exitCodes2.ToList()), default(ValueType) },
+            { (action3, exitCodes3.ToList()), default(ValueType) }
         };
 
         // Act
-        var result = job.WithPodPolicyFailureExitCodes(actionExitCodeId);
+        var result = job.WithPodPolicyFailureExitCodes(actions);
 
         // Assert
-        var groupedActions = actionExitCodeId.GroupBy(aec => aec.action).ToList();
+        Assert.Equal(actions.Count, result.Spec.PodFailurePolicy.Rules.Count);
 
-        Assert.Equal(groupedActions.Count, result.Spec.PodFailurePolicy.Rules.Count);
-
-        for (int i = 0; i < groupedActions.Count; i++)
+        foreach (var action in actions)
         {
-            Assert.Equal(groupedActions[i].Key, result.Spec.PodFailurePolicy.Rules[i].Action);
-            Assert.Equal(groupedActions[i].Select(aec => aec.exitCode).Distinct().ToList(),
-                result.Spec.PodFailurePolicy.Rules[i].OnExitCodes.Values);
+            var rule = result.Spec.PodFailurePolicy.Rules.FirstOrDefault(ruleElement =>
+                ruleElement.Action == action.Key.Item1);
+            Assert.NotNull(rule);
+            Assert.Equal(action.Key.Item2.Distinct().ToList(), rule.OnExitCodes.Values);
         }
     }
 }
