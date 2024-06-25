@@ -74,4 +74,46 @@ public class RedisService : IRedisService
         return db.KeyExpireAsync(key, expiresAfter);
     }
 
+    /// <inheritdoc />
+    public Task<long> ListLengthAsync(string key, CommandFlags flags = CommandFlags.None)
+    {
+        var db = redis.GetDatabase();
+        return db.ListLengthAsync(key, flags);
+    }
+
+    /// <inheritdoc />
+    public Task<long> ListRemoveAsync(string key, RedisValue value, long count = 0L,
+        CommandFlags flags = CommandFlags.None)
+    {
+        var db = redis.GetDatabase();
+        return db.ListRemoveAsync(key, value, count, flags);
+    }
+
+    /// <inheritdoc />
+    public Task<RedisValue> ListLeftPopAsync(string key, CommandFlags flags = CommandFlags.None)
+    {
+        var db = redis.GetDatabase();
+        return db.ListLeftPopAsync(key, flags);
+    }
+
+    /// <inheritdoc />
+    public Task<RedisValue> ListGetByIndexAsync(string key, long index,  CommandFlags flags = CommandFlags.None)
+    {
+        var db = redis.GetDatabase();
+        return db.ListGetByIndexAsync(key, index,  flags);
+    }
+
+    /// <inheritdoc />
+    public Task<RedisValue[]> ListRangeAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None)
+    {
+        var db = redis.GetDatabase();
+        return db.ListRangeAsync(key, start, stop, flags);
+    }
+
+    /// <inheritdoc />
+    public Task ListTrimAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None)
+    {
+        var db = redis.GetDatabase();
+        return db.ListTrimAsync(key, start, stop, flags);
+    }
 }
