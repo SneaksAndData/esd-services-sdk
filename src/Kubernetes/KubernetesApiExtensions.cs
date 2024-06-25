@@ -509,7 +509,7 @@ namespace Snd.Sdk.Kubernetes
         /// <param name="job">The job object to modify.</param>
         /// <param name="actionExitCodeId">A list with all action names and corresponding exit code number.</param>
         /// <returns>The Kubernetes Job object with added pod failure policy rules.</returns>>
-        public static V1Job WithPodPolicyFailureExitCodes(this V1Job job, List<(string action, int exitCode)> actionExitCodeId)
+        public static V1Job WithPodPolicyFailureExitCodes(this V1Job job, List<(string action, int exitCode)> actions)
         {
             var groupedActions = actionExitCodeId.GroupBy(aec => aec.action);
 
