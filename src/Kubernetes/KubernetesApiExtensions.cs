@@ -514,24 +514,40 @@ namespace Snd.Sdk.Kubernetes
             job.Spec ??= new V1JobSpec();
             job.Spec.PodFailurePolicy ??= new V1PodFailurePolicy();
 
-            var newRules = actions.Select(action => new V1PodFailurePolicyRule
-            {
-                Action = action.Key,
-                OnExitCodes = new V1PodFailurePolicyOnExitCodesRequirement
-                {
-                    Values = action.Value.Distinct().ToList()
-                }
-            }).ToList();
-
+            var auxActions = new Dictionary<string, List<int>>(actions);
+            var updatedRules = new List<V1PodFailurePolicyRule>();
 
             if (job.Spec.PodFailurePolicy.Rules != null)
             {
-                job.Spec.PodFailurePolicy.Rules = job.Spec.PodFailurePolicy.Rules.Concat(newRules).ToList();
+                foreach (var rule in job.Spec.PodFailurePolicy.Rules)
+                {
+                    if (auxActions.ContainsKey(rule.Action))
+                    {
+                        rule.OnExitCodes.Values = rule.OnExitCodes.Values
+                            .Concat(auxActions[rule.Action])
+                            .Distinct()
+                            .ToList();
+
+                        auxActions.Remove(rule.Action);
+                    }
+
+                    updatedRules.Add(rule);
+                }
             }
-            else
+
+            foreach (var action in auxActions)
             {
-                job.Spec.PodFailurePolicy.Rules = newRules;
+                updatedRules.Add(new V1PodFailurePolicyRule
+                {
+                    Action = action.Key,
+                    OnExitCodes = new V1PodFailurePolicyOnExitCodesRequirement
+                    {
+                        Values = action.Value.Distinct().ToList()
+                    }
+                });
             }
+
+            job.Spec.PodFailurePolicy.Rules = updatedRules;
 
             return job;
         }
@@ -543,7 +559,6 @@ namespace Snd.Sdk.Kubernetes
         /// <returns>New V1Job object.</returns>
         public static V1Job Clone(this V1Job job) =>
             JsonSerializer.Deserialize<V1Job>(JsonSerializer.Serialize(job));
-
 
         /// <summary>
         /// Checks if the job is completed.
@@ -568,7 +583,6 @@ namespace Snd.Sdk.Kubernetes
         /// <returns>True if the job in running state</returns>
         public static bool IsRunning(this V1Job job)
             => job.Status?.Conditions == null;
-
 
         /// <summary>
         /// Checks if pod has BillingId annotation
@@ -623,10 +637,8 @@ namespace Snd.Sdk.Kubernetes
                         var defaultRetry =
                             Environment.GetEnvironmentVariable("PROTEUS__K8S_HTTP_429_RETRY_INTERVAL") ??
                             "3";
-
                         var requestedRetry = (ex as HttpOperationException)?.Response.Headers
                             .GetOrElse("Retry-After", new List<string>()).FirstOrDefault();
-
                         return string.IsNullOrEmpty(requestedRetry)
                             ? TimeSpan.FromSeconds(int.Parse(defaultRetry))
                             : TimeSpan.FromSeconds(int.Parse(requestedRetry));
