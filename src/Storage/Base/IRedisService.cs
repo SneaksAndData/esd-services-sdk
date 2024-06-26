@@ -12,10 +12,6 @@ namespace Snd.Sdk.Storage.Base;
 /// </summary>
 public interface IRedisService
 {
-    /// <summary>
-    /// Gets the Redis database instance.
-    /// </summary>
-    IDatabase GetDatabase();
 
     /// <summary>
     /// Removes a key from Redis.
