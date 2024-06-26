@@ -64,11 +64,11 @@ public class KubernetesApiExtensionsTests
     {
         // Arrange
         var job = new V1Job();
-        var actions = new Dictionary<ValueTuple<string, List<int>>, ValueType>
+        var actions = new Dictionary<string, List<int>>
         {
-            { (action1, exitCodes1.ToList()), default(ValueType) },
-            { (action2, exitCodes2.ToList()), default(ValueType) },
-            { (action3, exitCodes3.ToList()), default(ValueType) }
+            { action1, exitCodes1.ToList() },
+            { action2, exitCodes2.ToList() },
+            { action3, exitCodes3.ToList() }
         };
 
         // Act
@@ -80,9 +80,27 @@ public class KubernetesApiExtensionsTests
         foreach (var action in actions)
         {
             var rule = result.Spec.PodFailurePolicy.Rules.FirstOrDefault(ruleElement =>
-                ruleElement.Action == action.Key.Item1);
+                ruleElement.Action == action.Key);
             Assert.NotNull(rule);
-            Assert.Equal(action.Key.Item2.Distinct().ToList(), rule.OnExitCodes.Values);
+            Assert.Equal(action.Value.Distinct().ToList(), rule.OnExitCodes.Values);
+        }
+
+        var additionalActions = new Dictionary<string, List<int>>
+        {
+            { "AdditionalAction1", new List<int> { 4, 5, 6 } },
+            { "AdditionalAction2", new List<int> { 7, 8, 9 } }
+        };
+
+        result = result.WithPodPolicyFailureExitCodes(additionalActions);
+
+        Assert.Equal(actions.Count + additionalActions.Count, result.Spec.PodFailurePolicy.Rules.Count);
+
+        foreach (var action in additionalActions)
+        {
+            var rule = result.Spec.PodFailurePolicy.Rules.FirstOrDefault(ruleElement =>
+                ruleElement.Action == action.Key);
+            Assert.NotNull(rule);
+            Assert.Equal(action.Value.Distinct().ToList(), rule.OnExitCodes.Values);
         }
     }
 }

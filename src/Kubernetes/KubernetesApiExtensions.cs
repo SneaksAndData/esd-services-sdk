@@ -507,26 +507,35 @@ namespace Snd.Sdk.Kubernetes
         /// Adds a policy failure action and exit codes to the job.
         /// </summary>
         /// <param name="job">The job object to modify.</param>
-        /// <param name="actionExitCodeId">A list with all action names and corresponding exit code number.</param>
+        /// <param name="actions">A list with all action names and corresponding exit code number.</param>
         /// <returns>The Kubernetes Job object with added pod failure policy rules.</returns>>
-        public static V1Job WithPodPolicyFailureExitCodes(this V1Job job,
-            Dictionary<string, List<int>> actions)
+        public static V1Job WithPodPolicyFailureExitCodes(this V1Job job, Dictionary<string, List<int>> actions)
         {
             job.Spec ??= new V1JobSpec();
             job.Spec.PodFailurePolicy ??= new V1PodFailurePolicy();
 
-            job.Spec.PodFailurePolicy.Rules = actions.Select(action => new V1PodFailurePolicyRule
+            var newRules = actions.Select(action => new V1PodFailurePolicyRule
             {
-                Action = action.Key.Item1,
+                Action = action.Key,
                 OnExitCodes = new V1PodFailurePolicyOnExitCodesRequirement
                 {
-                    Values = action.Key.Item2.Distinct().ToList()
+                    Values = action.Value.Distinct().ToList()
                 }
             }).ToList();
 
+
+            if (job.Spec.PodFailurePolicy.Rules != null)
+            {
+                job.Spec.PodFailurePolicy.Rules = job.Spec.PodFailurePolicy.Rules.Concat(newRules).ToList();
+            }
+            else
+            {
+                job.Spec.PodFailurePolicy.Rules = newRules;
+            }
+
             return job;
         }
-
+        
         /// <summary>
         /// Clones a job object.
         /// </summary>
