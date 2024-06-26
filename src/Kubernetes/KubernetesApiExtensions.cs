@@ -510,7 +510,7 @@ namespace Snd.Sdk.Kubernetes
         /// <param name="actionExitCodeId">A list with all action names and corresponding exit code number.</param>
         /// <returns>The Kubernetes Job object with added pod failure policy rules.</returns>>
         public static V1Job WithPodPolicyFailureExitCodes(this V1Job job,
-            Dictionary<ValueTuple<string, List<int>>, ValueType> actions)
+            Dictionary<string, List<int>> actions)
         {
             job.Spec ??= new V1JobSpec();
             job.Spec.PodFailurePolicy ??= new V1PodFailurePolicy();
