@@ -80,27 +80,27 @@ public interface IRedisService
     ///  Returns the element at index in the list stored at key.
     /// </summary>
     /// <param name="key">The key of the list from which to remove elements.</param>
-    /// <param name="index"> The index position to get the value at. The index is zero-based, so 0 means the first element, 1 the second element and so on. Negative indices can be used to designate elements starting at the tail of the list.</param>
+    /// <param name="index">The index position to get the value at. The index is zero-based, so 0 means the first element, 1 the second element and so on. Negative indices can be used to designate elements starting at the tail of the list.</param>
     /// <param name="flags">The flags to use for this operation</param>
     /// <returns>The value</returns>
     Task<RedisValue> ListGetByIndexAsync(string key, long index, CommandFlags flags = CommandFlags.None);
 /// <summary>
 /// Returns the specified elements of the list stored at key.
 /// </summary>
-/// <param name="key"></param>
-/// <param name="start"></param>
-/// <param name="stop"></param>
-/// <param name="flags"></param>
+/// <param name="key">The key of the list from which to remove elements.</param>
+/// <param name="start">>The start index of the range. Inclusive.</param>
+/// <param name="stop">The stop index of the range. Inclusive.</param>
+/// <param name="flags">The flags to use for this operation</param>
 /// <returns></returns>
     Task<RedisValue[]> ListRangeAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None);
 
     /// <summary>
-    /// Trim an existing list so that it will contain only the specified range of elements specified
+    /// Trim an existing list so that it will contain only the specified range of elements
     /// </summary>
-    /// <param name="key"></param>
-    /// <param name="start"></param>
-    /// <param name="stop"></param>
-    /// <param name="flags"></param>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="start">The start index of the range. Inclusive.</param>
+    /// <param name="stop">The stop index of the range. Inclusive.</param>
+    /// <param name="flags">The flags to use for this operation</param>
     /// <returns></returns>
     Task ListTrimAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None);
 }
