@@ -84,6 +84,7 @@ public interface IRedisService
     /// <param name="flags">The flags to use for this operation</param>
     /// <returns>The value</returns>
     Task<RedisValue> ListGetByIndexAsync(string key, long index, CommandFlags flags = CommandFlags.None);
+
     /// <summary>
     /// Returns the specified elements of the list stored at key.
     /// </summary>
