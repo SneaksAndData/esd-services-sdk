@@ -50,7 +50,7 @@ public interface IRedisService
     /// <summary>
     /// Retrieves the length of a Redis list.
     /// </summary>
-     /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="key">The key of the list from which to remove elements.</param>
     /// <param name="flags">The flags to use for this operation</param>
     /// <returns>Number of elements in the list</returns>
     Task<long> ListLengthAsync(string key, CommandFlags flags = CommandFlags.None);
@@ -84,14 +84,14 @@ public interface IRedisService
     /// <param name="flags">The flags to use for this operation</param>
     /// <returns>The value</returns>
     Task<RedisValue> ListGetByIndexAsync(string key, long index, CommandFlags flags = CommandFlags.None);
-/// <summary>
-/// Returns the specified elements of the list stored at key.
-/// </summary>
-/// <param name="key">The key of the list from which to remove elements.</param>
-/// <param name="start">>The start index of the range. Inclusive.</param>
-/// <param name="stop">The stop index of the range. Inclusive.</param>
-/// <param name="flags">The flags to use for this operation</param>
-/// <returns></returns>
+    /// <summary>
+    /// Returns the specified elements of the list stored at key.
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="start">>The start index of the range. Inclusive.</param>
+    /// <param name="stop">The stop index of the range. Inclusive.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns></returns>
     Task<RedisValue[]> ListRangeAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None);
 
     /// <summary>

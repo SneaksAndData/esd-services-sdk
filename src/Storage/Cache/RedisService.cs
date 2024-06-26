@@ -97,10 +97,10 @@ public class RedisService : IRedisService
     }
 
     /// <inheritdoc />
-    public Task<RedisValue> ListGetByIndexAsync(string key, long index,  CommandFlags flags = CommandFlags.None)
+    public Task<RedisValue> ListGetByIndexAsync(string key, long index, CommandFlags flags = CommandFlags.None)
     {
         var db = redis.GetDatabase();
-        return db.ListGetByIndexAsync(key, index,  flags);
+        return db.ListGetByIndexAsync(key, index, flags);
     }
 
     /// <inheritdoc />
