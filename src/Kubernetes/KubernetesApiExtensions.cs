@@ -535,7 +535,7 @@ namespace Snd.Sdk.Kubernetes
 
             return job;
         }
-        
+
         /// <summary>
         /// Clones a job object.
         /// </summary>
