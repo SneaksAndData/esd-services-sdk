@@ -12,10 +12,6 @@ namespace Snd.Sdk.Storage.Base;
 /// </summary>
 public interface IRedisService
 {
-    /// <summary>
-    /// Gets the Redis database instance.
-    /// </summary>
-    IDatabase GetDatabase();
 
     /// <summary>
     /// Removes a key from Redis.
@@ -46,4 +42,62 @@ public interface IRedisService
     /// Sets an expiration time for a key in Redis.
     /// </summary>
     Task SetExpirationAsync(string key, TimeSpan expiresAfter);
+
+    /// <summary>
+    /// Retrieves the length of a Redis list.
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns>Number of elements in the list</returns>
+    Task<long> ListLengthAsync(string key, CommandFlags flags = CommandFlags.None);
+
+    /// <summary>
+    /// Removes the first count occurrences of elements equal to value from the list stored at key.
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="value">The element to remove from the list.</param>
+    /// <param name="count">The number of occurrences to remove. This parameter can have different effects based on its value:
+    /// Positive: Remove up to the specified number of occurrences from the head (left) of the list.
+    ///  Negative: Remove up to the specified number of occurrences from the tail (right) of the list.
+    ///  Zero: Remove all occurrences of the element.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns>Number of elements removed</returns>
+    Task<long> ListRemoveAsync(string key, RedisValue value, long count = 0L, CommandFlags flags = CommandFlags.None);
+
+    /// <summary>
+    /// Removes and returns the first element of the list stored at key.
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns>The value</returns>
+    Task<RedisValue> ListLeftPopAsync(string key, CommandFlags flags = CommandFlags.None);
+
+    /// <summary>
+    ///  Returns the element at index in the list stored at key.
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="index">The index position to get the value at. The index is zero-based, so 0 means the first element, 1 the second element and so on. Negative indices can be used to designate elements starting at the tail of the list.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns>The value</returns>
+    Task<RedisValue> ListGetByIndexAsync(string key, long index, CommandFlags flags = CommandFlags.None);
+
+    /// <summary>
+    /// Returns the specified elements of the list stored at key.
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="start">>The start index of the range. Inclusive.</param>
+    /// <param name="stop">The stop index of the range. Inclusive.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns></returns>
+    Task<RedisValue[]> ListRangeAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None);
+
+    /// <summary>
+    /// Trim an existing list so that it will contain only the specified range of elements
+    /// </summary>
+    /// <param name="key">The key of the list from which to remove elements.</param>
+    /// <param name="start">The start index of the range. Inclusive.</param>
+    /// <param name="stop">The stop index of the range. Inclusive.</param>
+    /// <param name="flags">The flags to use for this operation</param>
+    /// <returns></returns>
+    Task ListTrimAsync(string key, int start, int stop, CommandFlags flags = CommandFlags.None);
 }
