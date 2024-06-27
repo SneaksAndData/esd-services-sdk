@@ -61,12 +61,14 @@ public class AmazonBlobStorageService : IBlobStorageService
     }
 
     /// <inheritdoc/>
-    public IDictionary<string, string> GetBlobMetadata(string blobPath, string blobName) {
+    public IDictionary<string, string> GetBlobMetadata(string blobPath, string blobName)
+    {
         throw new NotImplementedException();
     }
 
     /// <inheritdoc/>
-    public Task<IDictionary<string, string>> GetBlobMetadataAsync(string blobPath, string blobName) {
+    public Task<IDictionary<string, string>> GetBlobMetadataAsync(string blobPath, string blobName)
+    {
         throw new NotImplementedException();
     }
 
