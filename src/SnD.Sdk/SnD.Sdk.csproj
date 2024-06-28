@@ -40,6 +40,10 @@
         <None Include="../README.md" Pack="true" Visible="false" PackagePath="\" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\SnD.Sdk\SnD.Sdk.csproj"/>
+    </ItemGroup>
+
     <PropertyGroup>
         <PackageId>SnD.Sdk</PackageId>
         <Version>0.0.0</Version>
