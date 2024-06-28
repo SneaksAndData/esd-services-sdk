@@ -35,5 +35,5 @@ jobs:
         run: |
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
-          dotnet pack --configuration Release SnD.Sdk.Storage.Minio.csproj
+          dotnet pack --configuration Release /p:PackageVersion=$version SnD.Sdk.Storage.Minio.csproj
           dotnet nuget push "bin/Release/SnD.Sdk.Storage.Minio.$version.nupkg" --source "github"
