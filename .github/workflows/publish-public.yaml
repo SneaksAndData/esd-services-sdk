@@ -25,6 +25,7 @@ jobs:
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk/SnD.Sdk.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Storage.MinioSnD.Sdk.Storage.Minio.csproj
       - name: Import Secrets
         uses: hashicorp/vault-action@v2.7.3
         with:
