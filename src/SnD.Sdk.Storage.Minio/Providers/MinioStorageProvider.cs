@@ -15,9 +15,9 @@ public static class MinioStorageProvider
         var minioConfiguration = new MinioConfiguration();
         appConfiguration.GetSection(nameof(MinioStorageProvider)).Bind(minioConfiguration);
 
-        var  minio = new MinioClient()
+        var minio = new MinioClient()
             .WithEndpoint(minioConfiguration.Endpoint)
-            .WithCredentials( minioConfiguration.AccessKey, minioConfiguration.SecretKey)
+            .WithCredentials(minioConfiguration.AccessKey, minioConfiguration.SecretKey)
              .WithSSL(minioConfiguration.UseSsl)
             .WithRegion(minioConfiguration.Region)
             .Build();

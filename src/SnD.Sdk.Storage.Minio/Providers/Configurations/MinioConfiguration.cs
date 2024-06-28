@@ -20,10 +20,10 @@ public class MinioConfiguration
     /// </summary>
     public string SecretKey => Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "";
 
-/// <summary>
+    /// <summary>
     ///  Region.
     /// </summary>
-    public string  Region { get; set; }
+    public string Region { get; set; }
 
     /// <summary>
     /// Enable SSL connectivity.

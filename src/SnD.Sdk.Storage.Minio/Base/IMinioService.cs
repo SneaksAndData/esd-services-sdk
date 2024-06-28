@@ -17,6 +17,6 @@ public interface IMinioService
     /// <param name="redisQueueArn"></param>
     /// <param name="events"></param>
     /// <returns></returns>
-    Task SetRedisBucketNotificationAsync(string bucketName, string redisQueueArn,  List<BucketEvent> events);
+    Task SetRedisBucketNotificationAsync(string bucketName, string redisQueueArn, List<BucketEvent> events);
 }
 
