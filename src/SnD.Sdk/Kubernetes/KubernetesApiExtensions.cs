@@ -502,15 +502,7 @@ namespace Snd.Sdk.Kubernetes
                 { BILLING_ID_ANNOTATION_NAME, billingId }
             });
         }
-
-        /// <summary>
-        /// Clones a job object.
-        /// </summary>
-        /// <param name="job">V1Job to clone.</param>
-        /// <returns>New V1Job object.</returns>
-        public static V1Job Clone(this V1Job job) => JsonSerializer.Deserialize<V1Job>(JsonSerializer.Serialize(job));
-
-
+        
         /// <summary>
         /// Checks if the job is completed.
         /// </summary>
