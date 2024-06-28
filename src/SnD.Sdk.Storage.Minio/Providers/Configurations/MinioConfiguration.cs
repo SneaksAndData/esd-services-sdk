@@ -18,7 +18,7 @@ public sealed class MinioConfiguration
     /// <summary>
     ///  Secret Key
     /// </summary>
-    public string SecretKey  { get; set; }
+    public string SecretKey { get; set; }
 
     /// <summary>
     ///  Region.
@@ -40,7 +40,7 @@ public sealed class MinioConfiguration
         {
             Endpoint = Environment.GetEnvironmentVariable("MINIO_ENDPOINT") ?? "",
             AccessKey = Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY") ?? "",
-            SecretKey =Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "",
+            SecretKey = Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "",
             Region = Environment.GetEnvironmentVariable("MINIO_REGION") ?? "",
             UseSsl = bool.Parse(Environment.GetEnvironmentVariable("MINIO_USE_SSL") ?? "true")
         };
