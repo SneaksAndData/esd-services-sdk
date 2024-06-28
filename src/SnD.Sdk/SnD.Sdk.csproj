@@ -41,7 +41,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SnD.Sdk\SnD.Sdk.csproj"/>
+        <Folder Include="SnD.Sdk" />
     </ItemGroup>
 
     <PropertyGroup>
