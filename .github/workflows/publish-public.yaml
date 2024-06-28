@@ -35,7 +35,7 @@ jobs:
             /secret/data/common/code_signing_certificates certificate_p12 | CERT ;
             /secret/data/common/nuget_publish api_key | API_KEY ;
       - name: Build NuGet for SnD.Sdk
-        working-directory: ./src
+        working-directory: ./src/SnD.Sdk
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
