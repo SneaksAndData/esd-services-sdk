@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnD.Sdk.Tests", "test\SnD.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnD.Sdk", "src\SnD.Sdk\SnD.Sdk.csproj", "{B60C0D69-0B59-4ED4-941C-B3BC44C02D02}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnD.Sdk.Storage.Minio", "src\SnD.Sdk.Storage.Minio\SnD.Sdk.Storage.Minio.csproj", "{FB1FC986-DE77-4BB8-8E8D-1C66FF978308}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B60C0D69-0B59-4ED4-941C-B3BC44C02D02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B60C0D69-0B59-4ED4-941C-B3BC44C02D02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B60C0D69-0B59-4ED4-941C-B3BC44C02D02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB1FC986-DE77-4BB8-8E8D-1C66FF978308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB1FC986-DE77-4BB8-8E8D-1C66FF978308}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB1FC986-DE77-4BB8-8E8D-1C66FF978308}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB1FC986-DE77-4BB8-8E8D-1C66FF978308}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
