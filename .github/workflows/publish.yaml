@@ -16,7 +16,7 @@ jobs:
         run: |
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
-          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk/SnD.Sdk.csproj
       - name: Build NuGet
         working-directory: ./src/SnD.Sdk
         env:
