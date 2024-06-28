@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using Akka;
@@ -18,6 +19,8 @@ namespace Snd.Sdk.ActorProviders
     /// <summary>
     /// Extension methods from Akka.Streams.
     /// </summary>
+
+    [ExcludeFromCodeCoverage]
     public static class ActorProviderExtensions
     {
         /// <summary>

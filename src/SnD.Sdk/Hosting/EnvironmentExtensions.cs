@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Snd.Sdk.Hosting;
@@ -6,6 +7,7 @@ namespace Snd.Sdk.Hosting;
 /// <summary>
 /// Additional functionality for environment management.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class EnvironmentExtensions
 {
     /// <summary>
