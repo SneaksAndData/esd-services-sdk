@@ -3,7 +3,7 @@ namespace Snd.Sdk.Storage.Minio.Providers.Configurations;
 /// <summary>
 /// Configuration settings for Minio Storage.
 /// </summary>
-public class MinioConfiguration
+public sealed class MinioConfiguration
 {
     /// <summary>
     ///  Minio S3 endpoint.
@@ -13,12 +13,12 @@ public class MinioConfiguration
     /// <summary>
     /// Access Key
     /// </summary>
-    public string AccessKey => Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY") ?? "";
+    public string AccessKey { get; set; }
 
     /// <summary>
     ///  Secret Key
     /// </summary>
-    public string SecretKey => Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "";
+    public string SecretKey  { get; set; }
 
     /// <summary>
     ///  Region.
@@ -29,4 +29,20 @@ public class MinioConfiguration
     /// Enable SSL connectivity.
     /// </summary>
     public bool UseSsl { get; set; }
+
+    /// <summary>
+    /// Initialize from environment variables.
+    /// </summary>
+    /// <returns></returns>
+    public static MinioConfiguration CreateFromEnv()
+    {
+        return new MinioConfiguration
+        {
+            Endpoint = Environment.GetEnvironmentVariable("MINIO_ENDPOINT") ?? "",
+            AccessKey = Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY") ?? "",
+            SecretKey =Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "",
+            Region = Environment.GetEnvironmentVariable("MINIO_REGION") ?? "",
+            UseSsl = bool.Parse(Environment.GetEnvironmentVariable("MINIO_USE_SSL") ?? "true")
+        };
+    }
 }

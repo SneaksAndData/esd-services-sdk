@@ -22,11 +22,6 @@ public class BucketEvent
 
     public string value;
 
-    private BucketEvent()
-    {
-        value = null;
-    }
-
     public BucketEvent(string value)
     {
         this.value = value;
