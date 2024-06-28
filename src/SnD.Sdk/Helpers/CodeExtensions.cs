@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.Json;
 
 namespace Snd.Sdk.Helpers;
@@ -6,6 +7,7 @@ namespace Snd.Sdk.Helpers;
 /// <summary>
 /// Generic code pieces for every day use.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class CodeExtensions
 {
     /// <summary>

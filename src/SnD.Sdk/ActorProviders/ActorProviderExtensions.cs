@@ -19,6 +19,7 @@ namespace Snd.Sdk.ActorProviders
     /// <summary>
     /// Extension methods from Akka.Streams.
     /// </summary>
+
     [ExcludeFromCodeCoverage]
     public static class ActorProviderExtensions
     {
