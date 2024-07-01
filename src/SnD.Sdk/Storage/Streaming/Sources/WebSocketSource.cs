@@ -10,8 +10,8 @@ using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Streams.Stage;
 using Akka.Util;
+using SnD.Sdk.Extensions.Environment.Hosting;
 using Snd.Sdk.Tasks;
-using Snd.Sdk.Hosting;
 
 namespace Snd.Sdk.Storage.Streaming.Sources;
 

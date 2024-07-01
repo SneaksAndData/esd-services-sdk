@@ -1,3 +1,5 @@
+using SnD.Sdk.Extensions.Environment.Hosting;
+
 namespace Snd.Sdk.Storage.Minio.Providers.Configurations;
 
 /// <summary>
@@ -38,11 +40,11 @@ public sealed class MinioConfiguration
     {
         return new MinioConfiguration
         {
-            Endpoint = Environment.GetEnvironmentVariable("MINIO_ENDPOINT") ?? "",
-            AccessKey = Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY") ?? "",
-            SecretKey = Environment.GetEnvironmentVariable("MINIO_SECRET_KEY") ?? "",
-            Region = Environment.GetEnvironmentVariable("MINIO_REGION") ?? "",
-            UseSsl = bool.Parse(Environment.GetEnvironmentVariable("MINIO_USE_SSL") ?? "true")
+            Endpoint = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_ENDPOINT"),
+            AccessKey = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_ACCESS_KEY"),
+            SecretKey = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_SECRET_KEY"),
+            Region = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_REGION"),
+            UseSsl = bool.Parse(EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_USE_SSL") ?? "true")
         };
     }
 }

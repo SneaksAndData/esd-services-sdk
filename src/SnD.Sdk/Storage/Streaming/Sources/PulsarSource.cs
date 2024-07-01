@@ -13,7 +13,7 @@ using Akka.Util;
 using Snd.Sdk.Tasks;
 using Pulsar.Client.Api;
 using Pulsar.Client.Common;
-using Snd.Sdk.Hosting;
+using SnD.Sdk.Extensions.Environment.Hosting;
 using Snd.Sdk.Storage.Streaming.Models;
 using AvroSchema = Avro.Schema;
 

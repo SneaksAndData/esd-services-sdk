@@ -12,7 +12,7 @@ using Akka.Streams;
 using Akka.Streams.Dsl;
 using Akka.Util;
 using Microsoft.Extensions.DependencyInjection;
-using Snd.Sdk.Hosting;
+using SnD.Sdk.Extensions.Environment.Hosting;
 
 namespace Snd.Sdk.ActorProviders
 {

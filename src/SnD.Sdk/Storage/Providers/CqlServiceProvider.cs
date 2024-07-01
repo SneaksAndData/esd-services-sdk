@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text.Json;
 using Cassandra;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Snd.Sdk.Storage.Models;
-using Snd.Sdk.Hosting;
+using SnD.Sdk.Extensions.Environment.Hosting;
 using Snd.Sdk.Storage.Base;
 using Snd.Sdk.Storage.Cql;
 using Snd.Sdk.Storage.Providers.Configurations;
