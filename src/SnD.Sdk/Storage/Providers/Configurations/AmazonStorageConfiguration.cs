@@ -1,5 +1,5 @@
 ﻿using System;
-using static Snd.Sdk.Hosting.EnvironmentExtensions;
+using SnD.Sdk.Extensions.Environment.Hosting;
 
 namespace Snd.Sdk.Storage.Providers.Configurations
 {
@@ -37,9 +37,9 @@ namespace Snd.Sdk.Storage.Providers.Configurations
         {
             return new AmazonStorageConfiguration
             {
-                AccessKey = GetDomainEnvironmentVariable("AWS_ACCESS_KEY_ID"),
-                SecretKey = GetDomainEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
-                ServiceUrl = new Uri(GetDomainEnvironmentVariable("AWS_ENDPOINT_URL"))
+                AccessKey = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_ACCESS_KEY_ID"),
+                SecretKey = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
+                ServiceUrl = new Uri(EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_ENDPOINT_URL"))
             };
         }
     }

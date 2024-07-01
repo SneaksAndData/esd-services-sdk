@@ -17,7 +17,8 @@ jobs:
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk/SnD.Sdk.csproj
-      - name: Build NuGet
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Storage.Minio/SnD.Sdk.Storage.Minio.csproj
+      - name: Build NuGet for SnD.Sdk
         working-directory: ./src/SnD.Sdk
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -27,3 +28,12 @@ jobs:
           dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/SneaksAndData/index.json"
           dotnet pack --configuration Release SnD.Sdk.csproj
           dotnet nuget push "bin/Release/SnD.Sdk.$version.nupkg" --source "github"
+      - name: Build NuGet for SnD.Sdk.Storage.Minio
+        working-directory: ./src/SnD.Sdk.Storage.Minio
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          dotnet pack --configuration Release /p:PackageVersion=$version SnD.Sdk.Storage.Minio.csproj
+          dotnet nuget push "bin/Release/SnD.Sdk.Storage.Minio.$version.nupkg" --source "github"

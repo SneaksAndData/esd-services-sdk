@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
-namespace Snd.Sdk.Hosting;
+namespace SnD.Sdk.Extensions.Environment.Hosting;
 
 /// <summary>
 /// Additional functionality for environment management.
@@ -17,7 +17,7 @@ public static class EnvironmentExtensions
     /// <param name="defaultValue">Optional default value to provide.</param> 
     /// <returns></returns>
     public static string GetDomainEnvironmentVariable(string varName, string defaultValue = "") =>
-        Environment.GetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}") ?? defaultValue;
+        System.Environment.GetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}") ?? defaultValue;
 
     /// <summary>
     /// Sets the environment variable bound to this assembly domain.
@@ -26,7 +26,7 @@ public static class EnvironmentExtensions
     /// <param name="varValue">Value of environment variable bound to Assembly to set.</param>
     /// <returns></returns>
     public static void SetAssemblyEnvironmentVariable(string varName, string varValue) =>
-        Environment.SetEnvironmentVariable($"{GetAssemblyVariablePrefix()}{varName}", varValue);
+        System.Environment.SetEnvironmentVariable($"{GetAssemblyVariablePrefix()}{varName}", varValue);
 
     /// <summary>
     /// Read environment variable bound to this assembly domain.
@@ -35,7 +35,7 @@ public static class EnvironmentExtensions
     /// <param name="defaultValue">Optional default value to provide.</param> 
     /// <returns></returns>
     public static string GetAssemblyEnvironmentVariable(string varName, string defaultValue = "") =>
-        Environment.GetEnvironmentVariable($"{GetAssemblyVariablePrefix()}{varName}") ?? defaultValue;
+        System.Environment.GetEnvironmentVariable($"{GetAssemblyVariablePrefix()}{varName}") ?? defaultValue;
 
     /// <summary>
     /// Sets the environment variable bound to this application domain.
@@ -44,7 +44,7 @@ public static class EnvironmentExtensions
     /// <param name="varValue">Value of environment variable bound to AppDomain to set.</param>
     /// <returns></returns>
     public static void SetDomainEnvironmentVariable(string varName, string varValue) =>
-        Environment.SetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}", varValue);
+        System.Environment.SetEnvironmentVariable($"{AppDomain.CurrentDomain.FriendlyName.ToUpperInvariant()}__{varName}", varValue);
 
     /// <summary>
     /// Returns the name prefix used for domain variables.
