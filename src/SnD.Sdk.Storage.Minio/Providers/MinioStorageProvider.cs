@@ -8,24 +8,17 @@ namespace Snd.Sdk.Storage.Minio.Providers;
 
 public static class MinioStorageProvider
 {
-
-    public static IServiceCollection AddMinioStorage(this IServiceCollection services, IConfiguration appConfiguration)
+    public static IServiceCollection AddMinioStorage(this IServiceCollection services,
+        MinioConfiguration minioConfiguration)
     {
-
-        var minioConfiguration = new MinioConfiguration();
-        appConfiguration.GetSection(nameof(MinioStorageProvider)).Bind(minioConfiguration);
-
-        var minio = new MinioClient()
-            .WithEndpoint(minioConfiguration.Endpoint)
-            .WithCredentials(minioConfiguration.AccessKey, minioConfiguration.SecretKey)
-             .WithSSL(minioConfiguration.UseSsl)
-            .WithRegion(minioConfiguration.Region)
-            .Build();
-
-        services.AddSingleton<IMinioClient>(sp => minio);
+        services.AddSingleton<IMinioClient>(sp =>
+                new MinioClient()
+                    .WithEndpoint(minioConfiguration.Endpoint)
+                    .WithCredentials(minioConfiguration.AccessKey, minioConfiguration.SecretKey)
+                    .WithSSL(minioConfiguration.UseSsl)
+                    .WithRegion(minioConfiguration.Region)
+                    .Build());
 
         return services.AddSingleton<IMinioService, IMinioService>();
-
     }
-
 }
