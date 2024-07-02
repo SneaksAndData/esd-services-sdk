@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
-using Snd.Sdk.Hosting;
+using SnD.Sdk.Extensions.Environment.Hosting;
 
 namespace Snd.Sdk.Storage.Providers.Configurations;
 

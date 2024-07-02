@@ -3,7 +3,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Snd.Sdk.Hosting;
+using SnD.Sdk.Extensions.Environment.Hosting;
 
 namespace Snd.Sdk.Logs.Providers
 {

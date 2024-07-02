@@ -19,12 +19,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3.0.3
         with:
-          dotnet-version: 6.0.x          
+          dotnet-version: 6.0.x
       - name: Set Package Version
         run: |
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk/SnD.Sdk.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Storage.Minio/SnD.Sdk.Storage.Minio.csproj
       - name: Import Secrets
         uses: hashicorp/vault-action@v2.7.3
         with:
@@ -50,6 +51,25 @@ jobs:
             --timestamper http://timestamp.digicert.com
           
           dotnet nuget push "bin/Release/SnD.Sdk.$version.nupkg" --api-key "$API_KEY" \
+            --source  https://api.nuget.org/v3/index.json
+          
+          rm cert.p12
+      - name: Build NuGet for SnD.Sdk.Storage.Minio
+        working-directory: ./src/SnD.Sdk.Storage.Minio
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          dotnet pack --configuration Release SnD.Sdk.Storage.Minio.csproj
+          
+          echo "$CERT" | base64 --decode > cert.p12
+          
+          dotnet nuget sign "bin/Release/SnD.Sdk.Storage.Minio.$version.nupkg"  \
+            --certificate-path cert.p12 \
+            --timestamper http://timestamp.digicert.com
+          
+          dotnet nuget push "bin/Release/SnD.Sdk.Storage.Minio.$version.nupkg" --api-key "$API_KEY" \
             --source  https://api.nuget.org/v3/index.json
           
           rm cert.p12
