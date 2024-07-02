@@ -9,7 +9,7 @@ namespace SnD.Sdk.Storage.Minio;
 
 /// <summary>
 /// Provides an implementation of the <see cref="IMinioService"/> interface for interacting with Minio storage.
-/// </summary
+/// </summary>
 public class MinioService : IMinioService
 {
     private readonly IMinioClient minioClient;
