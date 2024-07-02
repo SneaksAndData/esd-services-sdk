@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace SnD.Sdk.Storage.Minio.Base;
 
 public interface IMinioService
