@@ -1,5 +1,11 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace SnD.Sdk.Storage.Minio.Base;
 
+/// <summary>
+/// Interface for Minio service operations.
+/// </summary>
 public interface IMinioService
 {
     /// <summary>
