@@ -14,6 +14,14 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="README.md" Pack="true" Visible="false" PackagePath="\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="SnD.Sdk.Storage.Minio"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="../SnD.Sdk.Extensions.Environment/SnD.Sdk.Extensions.Environment.csproj" />
     </ItemGroup>
 
