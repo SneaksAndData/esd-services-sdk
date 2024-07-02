@@ -2,7 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>SnD.Sdk.Storage.Minio</RootNamespace>
+        <OutputType>Library</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,12 +17,17 @@
         <ProjectReference Include="../SnD.Sdk.Extensions.Environment/SnD.Sdk.Extensions.Environment.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="README.md">
-        <Pack>true</Pack>
-        <Visible>false</Visible>
-        <PackagePath>/</PackagePath>
-      </None>
-    </ItemGroup>
+    <PropertyGroup>
+        <PackageId>SnD.Sdk.Storage.Minio</PackageId>
+        <Version>0.0.0</Version>
+        <Authors>@SneaksAndData/platform-engineering</Authors>
+        <Company>Sneaks&amp;Data</Company>
+        <PackageDescription>C# SDK for SnD OSS Projects</PackageDescription>
+        <RepositoryUrl>https://github.com/SneaksAndData/esd-services-sdk</RepositoryUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageDescription>SDK for Sneaks&amp;Data OSS Projects</PackageDescription>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
 
 </Project>
