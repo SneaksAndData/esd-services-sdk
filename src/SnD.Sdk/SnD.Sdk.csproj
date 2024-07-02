@@ -34,6 +34,7 @@
         <PackageReference Include="Serilog.Sinks.Datadog.Logs" Version="0.5.2"/>
         <PackageReference Include="StackExchange.Redis" Version="2.7.33"/>
         <PackageReference Include="System.Memory.Data" Version="6.0.0"/>
+        <PackageReference Include=">SnD.Sdk.Extensions.Environment" Version="1.1.10" />
     </ItemGroup>
 
     <ItemGroup>
