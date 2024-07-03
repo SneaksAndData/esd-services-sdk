@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Minio;
+using SnD.Sdk.Storage.Minio;
 using SnD.Sdk.Storage.Minio.Base;
 using Snd.Sdk.Storage.Minio.Providers.Configurations;
 
@@ -27,6 +28,6 @@ public static class MinioStorageProvider
                     .WithRegion(minioConfiguration.Region)
                     .Build());
 
-        return services.AddSingleton<IMinioService, IMinioService>();
+        return services.AddSingleton<IMinioService, MinioService>();
     }
 }
