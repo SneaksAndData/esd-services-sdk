@@ -6,4 +6,25 @@
         <OutputType>Library</OutputType>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="README.md" Pack="true" Visible="false" PackagePath="\"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Folder Include="SnD.Sdk.Extensions.Environment"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <PackageId>SnD.Sdk.Extensions.Environment</PackageId>
+        <Version>0.0.0</Version>
+        <Authors>@SneaksAndData/platform-engineering</Authors>
+        <Company>Sneaks&amp;Data</Company>
+        <PackageDescription>C# SDK for SnD OSS Projects. This package contains static methods for working with environment variables.</PackageDescription>
+        <RepositoryUrl>https://github.com/SneaksAndData/esd-services-sdk</RepositoryUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageDescription>SDK for Sneaks&amp;Data OSS Projects</PackageDescription>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
 </Project>
