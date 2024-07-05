@@ -42,10 +42,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="SnD.Sdk"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="../SnD.Sdk.Extensions.Environment/SnD.Sdk.Extensions.Environment.csproj"/>
     </ItemGroup>
 
