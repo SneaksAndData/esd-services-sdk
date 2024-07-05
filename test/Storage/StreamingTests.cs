@@ -1,20 +1,14 @@
 ﻿using System;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Akka.Streams.Dsl;
-using Avro;
-using Avro.Generic;
-using Avro.IO;
-using Moq;
-using Snd.Sdk.Hosting;
 using Snd.Sdk.Storage.Streaming.Models;
 using Snd.Sdk.Storage.Streaming.Sources;
 using Snd.Sdk.Storage.Streaming.MessageProtocolExtensions;
-using Pulsar.Client.Api;
+using SnD.Sdk.Extensions.Environment.Hosting;
 using Xunit;
 
 namespace Snd.Sdk.Tests.Storage;
