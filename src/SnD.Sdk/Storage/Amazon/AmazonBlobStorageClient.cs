@@ -101,7 +101,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
         do
         {
             var response = this.client.ListObjectsV2Async(request).GetAwaiter().GetResult();
-            foreach(var s3Object in response.S3Objects)
+            foreach (var s3Object in response.S3Objects)
             {
                 yield return this.MapToStoredBlob(s3Object);
             }
@@ -109,7 +109,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
         }
         while (request.ContinuationToken != null);
     }
-    
+
     private StoredBlob MapToStoredBlob(S3Object arg)
     {
         return new StoredBlob

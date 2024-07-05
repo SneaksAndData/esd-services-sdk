@@ -10,7 +10,6 @@ namespace Snd.Sdk.Storage.Base;
 /// </summary>
 public interface IBlobStorageListService
 {
-    
     /// <summary>
     /// Stream blob item metadata for blobs under provided path.
     /// </summary>
