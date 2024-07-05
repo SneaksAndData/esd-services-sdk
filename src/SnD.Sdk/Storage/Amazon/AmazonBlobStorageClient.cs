@@ -20,7 +20,7 @@ namespace Snd.Sdk.Storage.Amazon;
 /// Blob Service implementation for S3-compatible object storage.
 /// Blob path for this service should be in format s3://bucket-name/path
 /// </summary>
-public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListService
+public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListService, IBlobStorageReader
 {
     private readonly IAmazonS3 client;
     private readonly ILogger<AmazonBlobStorageClient> logger;
@@ -49,7 +49,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
             InputStream = ms,
             AutoCloseStream = true
         };
-        return client.PutObjectAsync(request).TryMap(result => new UploadedBlob
+        return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
         {
             Name = blobName,
             ContentHash = result.ChecksumSHA256,
@@ -71,7 +71,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
             Key = path.Join(blobName).ObjectKey,
             ContentBody = text
         };
-        return client.PutObjectAsync(request).TryMap(result => new UploadedBlob
+        return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
         {
             Name = blobName,
             ContentHash = result.ChecksumSHA256,
@@ -113,6 +113,54 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
         while (request.ContinuationToken != null);
     }
 
+    /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    public Task<T> GetBlobContentAsync<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+    {
+        var path = $"{blobName}/{blobPath}".AsAmazonS3Path();
+        var request = new GetObjectRequest
+        {
+            BucketName = path.Bucket,
+            Key = path.ObjectKey
+        };
+        return this.client
+            .GetObjectAsync(request)
+            .TryMap(c =>
+            {
+                using var memoryStream = new MemoryStream();
+                c.ResponseStream.CopyTo(memoryStream);  
+                return deserializer(new BinaryData(memoryStream.ToArray()));
+            }, exception =>
+            {
+                this.logger.LogError(exception, "Could not download blob {blobName} from {bucket}", blobName, path.Bucket);
+                return default;
+            });
+    }
+
+    /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    public T GetBlobContent<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+    {
+        return this.GetBlobContentAsync(blobPath, blobName, deserializer).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    public Stream StreamBlobContent(string blobPath, string blobName)
+    {
+        var path = $"{blobName}/{blobPath}".AsAmazonS3Path();
+        var request = new GetObjectRequest
+        {
+            BucketName = path.Bucket,
+            Key = path.ObjectKey
+        };
+        return this.client
+            .GetObjectAsync(request)
+            .GetAwaiter()
+            .GetResult()
+            .ResponseStream;
+    }
+
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
     private StoredBlob MapToStoredBlob(S3Object arg)
     {
@@ -135,5 +183,4 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
         });
         return paginator.S3Objects;
     }
-
 }
