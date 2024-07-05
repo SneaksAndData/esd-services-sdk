@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Akka;
@@ -83,6 +84,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
     }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
     public Source<StoredBlob, NotUsed> ListBlobs(string blobPath)
     {
         var path = blobPath.AsAmazonS3Path();
@@ -90,6 +92,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
     }
 
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
     public IEnumerable<StoredBlob> ListBlobsAsEnumerable(string blobPath)
     {
         var path = blobPath.AsAmazonS3Path();
@@ -110,6 +113,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
         while (request.ContinuationToken != null);
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
     private StoredBlob MapToStoredBlob(S3Object arg)
     {
         return new StoredBlob
@@ -121,6 +125,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
         };
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
     private IAsyncEnumerable<S3Object> GetObjectsPaginator(AmazonS3StoragePath path)
     {
         var paginator = this.client.Paginators.ListObjectsV2(new ListObjectsV2Request
