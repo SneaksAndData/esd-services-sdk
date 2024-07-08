@@ -20,17 +20,17 @@ namespace Snd.Sdk.Storage.Amazon;
 /// Blob Service implementation for S3-compatible object storage.
 /// Blob path for this service should be in format s3://bucket-name/path
 /// </summary>
-public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListService, IBlobStorageReader
+public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListService, IBlobStorageReader
 {
     private readonly IAmazonS3 client;
-    private readonly ILogger<AmazonBlobStorageClient> logger;
+    private readonly ILogger<AmazonBlobStorageService> logger;
 
     /// <summary>
     /// Creates a new instance of S3BlobStorageService.
     /// </summary>
     /// <param name="client">Authenticated S3 AWS client instance</param>
     /// <param name="logger">Logger</param>
-    public AmazonBlobStorageClient(IAmazonS3 client, ILogger<AmazonBlobStorageClient> logger)
+    public AmazonBlobStorageService(IAmazonS3 client, ILogger<AmazonBlobStorageService> logger)
     {
         this.client = client;
         this.logger = logger;
@@ -84,11 +84,29 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
     }
 
     /// <inheritdoc/>
+    public Task<bool> RemoveBlob(string blobPath, string blobName)
+    {
+        var path = $"{blobPath}/{blobName}".AsAmazonS3Path();
+        var request = new DeleteObjectRequest
+        {
+            BucketName = path.Bucket,
+            Key = path.ObjectKey
+        };
+        return this.client
+            .DeleteObjectAsync(request)
+            .TryMap(success => true, exception =>
+            {
+                this.logger.LogError("Failed to delete blob {blobName} from {bucket}", blobName, path.Bucket);
+                return false;
+            });
+    }
+
+    /// <inheritdoc/>
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
     public Source<StoredBlob, NotUsed> ListBlobs(string blobPath)
     {
         var path = blobPath.AsAmazonS3Path();
-        return Source.From(() => this.GetObjectsPaginator(path)).Select(this.MapToStoredBlob);
+        return Source.From(() => this.GetObjectsPaginator(path)).Select(MapToStoredBlob);
     }
 
     /// <inheritdoc/>
@@ -106,7 +124,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
             var response = this.client.ListObjectsV2Async(request).GetAwaiter().GetResult();
             foreach (var s3Object in response.S3Objects)
             {
-                yield return this.MapToStoredBlob(s3Object);
+                yield return MapToStoredBlob(s3Object);
             }
             request.ContinuationToken = response.NextContinuationToken;
         }
@@ -117,7 +135,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
     public Task<T> GetBlobContentAsync<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
     {
-        var path = $"{blobName}/{blobPath}".AsAmazonS3Path();
+        var path = $"{blobPath}/{blobName}".AsAmazonS3Path();
         var request = new GetObjectRequest
         {
             BucketName = path.Bucket,
@@ -128,7 +146,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
             .TryMap(c =>
             {
                 using var memoryStream = new MemoryStream();
-                c.ResponseStream.CopyTo(memoryStream);  
+                c.ResponseStream.CopyTo(memoryStream);
                 return deserializer(new BinaryData(memoryStream.ToArray()));
             }, exception =>
             {
@@ -162,7 +180,7 @@ public class AmazonBlobStorageClient : IBlobStorageWriter, IBlobStorageListServi
     }
 
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
-    private StoredBlob MapToStoredBlob(S3Object arg)
+    private static StoredBlob MapToStoredBlob(S3Object arg)
     {
         return new StoredBlob
         {
