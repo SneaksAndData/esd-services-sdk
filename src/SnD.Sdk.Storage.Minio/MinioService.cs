@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Minio;
@@ -30,10 +31,32 @@ public class MinioService : IMinioService
     /// <param name="bucketName">The name of the bucket where the object is stored.</param>
     /// <param name="objectName">The name of the object to retrieve.</param>
     /// <returns>A Task representing the asynchronous operation.</returns>
-    public Task GetObjectAsync(string bucketName, string objectName)
+    public Task<ObjectStat> GetObjectAsync(string bucketName, string objectName)
     {
         GetObjectArgs args = new GetObjectArgs().WithBucket(bucketName).WithObject(objectName);
         return minioClient.GetObjectAsync(args);
+    }
+
+
+    /// <summary>
+    /// Asynchronously reads an object from a specified bucket and returns its content as a <see cref="Stream"/>.
+    /// </summary>
+    /// <param name="bucketName">The name of the bucket where the object is stored.</param>
+    /// <param name="objectName">The name of the object to read.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, which upon completion returns a <see cref="Stream"/> containing the object's content.</returns>
+    public async Task<Stream> ReadObjectAsync(string bucketName, string objectName)
+    {
+        var memoryStream = new MemoryStream();
+        await minioClient.GetObjectAsync(new GetObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName)
+            .WithCallbackStream(stream =>
+            {
+                stream.CopyTo(memoryStream);
+            }));
+        memoryStream.Position = 0;
+        return memoryStream;
+
     }
 
     /// <summary>
