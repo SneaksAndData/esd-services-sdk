@@ -52,11 +52,10 @@ public class MinioService : IMinioService
             .WithObject(objectName)
             .WithCallbackStream(stream =>
             {
-                stream.CopyTo(memoryStream);
+                stream.CopyToAsync(memoryStream);
             }));
         memoryStream.Position = 0;
         return memoryStream;
-
     }
 
     /// <summary>
