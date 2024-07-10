@@ -32,7 +32,7 @@ namespace Snd.Sdk.Storage.Providers
             };
 
             services.AddSingleton<IAmazonS3>(new AmazonS3Client(awsConfig.AccessKey, awsConfig.SecretKey, clientConfig));
-            return services.AddSingleton<IBlobStorageWriter, AmazonBlobStorageClient>();
+            return services.AddSingleton<IBlobStorageWriter, AmazonBlobStorageService>();
         }
     }
 }
