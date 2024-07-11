@@ -43,7 +43,7 @@ public record AdlsGen2Path : IStoragePath
         if (!match.Success)
         {
             throw new ArgumentException(
-                $"An {nameof(AdlsGen2Path)} must be in the format abfss://container@path/to/key");
+                $"An {nameof(AdlsGen2Path)} must be in the format abfss://container@path/to/key, but was: {hdfsPath}");
         }
 
         Container = match.Groups["container"].Value;
