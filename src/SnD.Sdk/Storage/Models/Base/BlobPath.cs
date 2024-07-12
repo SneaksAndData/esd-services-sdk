@@ -16,7 +16,7 @@ public interface IStoragePath
     /// Relative path to an object in the blob storage
     /// </summary>
     public string ObjectKey { get; }
-    
+
     /// <summary>
     /// Converts the given path to HDFS path string.
     /// </summary>

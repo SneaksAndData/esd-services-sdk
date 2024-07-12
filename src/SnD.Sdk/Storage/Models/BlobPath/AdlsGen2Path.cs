@@ -33,7 +33,7 @@ public record AdlsGen2Path : IStoragePath
             ObjectKey = $"{this.ObjectKey}/{keyName}"
         };
     }
-    
+
     /// <inheritdoc cref="IStoragePath.ToHdfsPath"/>
     public string ToHdfsPath() => $"abfss://{this.Container}@{this.ObjectKey}";
 
