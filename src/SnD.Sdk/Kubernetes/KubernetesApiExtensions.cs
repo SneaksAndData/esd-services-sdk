@@ -557,8 +557,7 @@ namespace Snd.Sdk.Kubernetes
         /// </summary>
         /// <param name="job">V1Job to clone.</param>
         /// <returns>New V1Job object.</returns>
-        public static V1Job Clone(this V1Job job) =>
-            JsonSerializer.Deserialize<V1Job>(JsonSerializer.Serialize(job));
+        public static V1Job Clone(this V1Job job) => JsonSerializer.Deserialize<V1Job>(JsonSerializer.Serialize(job));
 
         /// <summary>
         /// Checks if the job is completed.
@@ -590,8 +589,7 @@ namespace Snd.Sdk.Kubernetes
         /// <param name="pod">V1Job object to test</param>
         /// <returns>True pod contains BillingId</returns>
         public static bool HasBillingId(this V1Pod pod)
-            => pod?.Metadata?.Annotations != null &&
-               pod.Metadata.Annotations.ContainsKey(BILLING_ID_ANNOTATION_NAME);
+            => pod?.Metadata?.Annotations != null && pod.Metadata.Annotations.ContainsKey(BILLING_ID_ANNOTATION_NAME);
 
         /// <summary>
         /// Checks if pod has BillingId annotation
@@ -634,11 +632,12 @@ namespace Snd.Sdk.Kubernetes
                         Environment.GetEnvironmentVariable("PROTEUS__K8S_HTTP_429_RETRY_COUNT") ?? "3"),
                     sleepDurationProvider: (_, ex, _) =>
                     {
-                        var defaultRetry =
-                            Environment.GetEnvironmentVariable("PROTEUS__K8S_HTTP_429_RETRY_INTERVAL") ??
-                            "3";
+                        var defaultRetry = Environment.GetEnvironmentVariable("PROTEUS__K8S_HTTP_429_RETRY_INTERVAL") ??
+                                           "3";
+
                         var requestedRetry = (ex as HttpOperationException)?.Response.Headers
                             .GetOrElse("Retry-After", new List<string>()).FirstOrDefault();
+
                         return string.IsNullOrEmpty(requestedRetry)
                             ? TimeSpan.FromSeconds(int.Parse(defaultRetry))
                             : TimeSpan.FromSeconds(int.Parse(requestedRetry));
