@@ -558,7 +558,8 @@ namespace Snd.Sdk.Kubernetes
         /// <param name="job">V1Job to clone.</param>
         /// <returns>New V1Job object.</returns>
         public static V1Job Clone(this V1Job job) => JsonSerializer.Deserialize<V1Job>(JsonSerializer.Serialize(job));
-
+        
+        
         /// <summary>
         /// Checks if the job is completed.
         /// </summary>
@@ -583,6 +584,7 @@ namespace Snd.Sdk.Kubernetes
         public static bool IsRunning(this V1Job job)
             => job.Status?.Conditions == null;
 
+        
         /// <summary>
         /// Checks if pod has BillingId annotation
         /// </summary>
