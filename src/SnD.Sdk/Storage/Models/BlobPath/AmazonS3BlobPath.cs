@@ -42,7 +42,7 @@ public record AmazonS3StoragePath : IStoragePath
 
         if (!match.Success)
         {
-            throw new ArgumentException($"An {nameof(AmazonS3StoragePath)} must be in the format s3a://bucket/path");
+            throw new ArgumentException($"An {nameof(AmazonS3StoragePath)} must be in the format s3a://bucket/path, but was: {hdfspath}");
         }
 
         Bucket = match.Groups["bucket"].Value;

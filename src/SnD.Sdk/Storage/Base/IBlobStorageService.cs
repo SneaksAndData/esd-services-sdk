@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Akka;
-using Akka.Streams.Dsl;
 using Snd.Sdk.Storage.Base.Streaming;
-using Snd.Sdk.Storage.Models;
 
 namespace Snd.Sdk.Storage.Base;
 
@@ -13,7 +10,8 @@ namespace Snd.Sdk.Storage.Base;
 /// </summary>
 public interface IBlobStorageService : IBlobStorageReader,
     IBlobStorageWriter,
-    IBlobStreamWriter
+    IBlobStreamWriter,
+    IBlobStorageListService
 {
     /// <summary>
     /// Reads blob metadata for the specified blob.
@@ -30,14 +28,6 @@ public interface IBlobStorageService : IBlobStorageReader,
     /// <param name="blobName">Name of a blob.</param>
     /// <returns></returns>        
     Task<IDictionary<string, string>> GetBlobMetadataAsync(string blobPath, string blobName);
-
-    /// <summary>
-    /// Deletes a blob.
-    /// </summary>
-    /// <param name="blobPath">Blob path.</param>
-    /// <param name="blobName">Blob name.</param>
-    /// <returns></returns>
-    Task<bool> RemoveBlob(string blobPath, string blobName);
 
     /// <summary>
     /// Moves a blob from one container to another, in the same storage account.
@@ -57,18 +47,4 @@ public interface IBlobStorageService : IBlobStorageReader,
     /// <param name="kwOptions">Additional key-value arguments for URI generator.</param>
     /// <returns></returns>
     Uri GetBlobUri(string blobPath, string blobName, params ValueTuple<string, object>[] kwOptions);
-
-    /// <summary>
-    /// Stream blob item metadata for blobs under provided path.
-    /// </summary>
-    /// <param name="blobPath">Path to list.</param>
-    /// <returns></returns>
-    Source<StoredBlob, NotUsed> ListBlobs(string blobPath);
-
-    /// <summary>
-    /// Retrieve blob item metadata for blobs under provided path, as an enumerable.
-    /// </summary>
-    /// <param name="blobPath">Path to list.</param>
-    /// <returns></returns>
-    IEnumerable<StoredBlob> ListBlobsAsEnumerable(string blobPath);
 }
