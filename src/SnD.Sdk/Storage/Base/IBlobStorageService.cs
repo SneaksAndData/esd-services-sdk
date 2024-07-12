@@ -30,14 +30,6 @@ public interface IBlobStorageService : IBlobStorageReader,
     Task<IDictionary<string, string>> GetBlobMetadataAsync(string blobPath, string blobName);
 
     /// <summary>
-    /// Deletes a blob.
-    /// </summary>
-    /// <param name="blobPath">Blob path.</param>
-    /// <param name="blobName">Blob name.</param>
-    /// <returns></returns>
-    Task<bool> RemoveBlob(string blobPath, string blobName);
-
-    /// <summary>
     /// Moves a blob from one container to another, in the same storage account.
     /// </summary>
     /// <param name="sourcePath">Path to a source blob.</param>

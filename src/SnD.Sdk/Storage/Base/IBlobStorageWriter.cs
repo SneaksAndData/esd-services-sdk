@@ -28,4 +28,11 @@ public interface IBlobStorageWriter
     /// <returns></returns>
     Task<UploadedBlob> SaveTextAsBlob(string text, string blobPath, string blobName);
 
+    /// <summary>
+    /// Deletes a blob.
+    /// </summary>
+    /// <param name="blobPath">Blob path.</param>
+    /// <param name="blobName">Blob name.</param>
+    /// <returns></returns>
+    Task<bool> RemoveBlob(string blobPath, string blobName);
 }
