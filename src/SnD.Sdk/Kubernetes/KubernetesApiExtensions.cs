@@ -506,8 +506,8 @@ namespace Snd.Sdk.Kubernetes
         /// <summary>
         /// Merges two V1PodFailurePolicies objects.
         /// </summary>
-        /// <param name="ruleA"> A V1PodFailurePolicyRule object with the action name and a list of exit codes.</param>
-        /// <param name="ruleB"> A different V1PodFailurePolicyRule object with the action name and a list of exit codes.</param>
+        /// <param name="ruleA"> A V1PodFailurePolicyRule object.</param>
+        /// <param name="ruleB"> A different V1PodFailurePolicyRule object.</param>
         /// <returns> A V1PodFailurePolicyRule object.</returns>
         public static V1PodFailurePolicyRule MergePodFailurePolicyRules(
             V1PodFailurePolicyRule ruleA,
@@ -518,15 +518,13 @@ namespace Snd.Sdk.Kubernetes
                 throw new InvalidOperationException("Cannot merge rules with different actions");
             }
 
-            if (ruleA.OnPodConditions != ruleB.OnPodConditions)
-            {
-                throw new InvalidOperationException("Cannot merge rules with different pod conditions");
-            }
-
             return new V1PodFailurePolicyRule(action: ruleA.Action,
                 onExitCodes: new V1PodFailurePolicyOnExitCodesRequirement(operatorProperty: "In",
                     values: ruleA.OnExitCodes.Values.Concat(ruleB.OnExitCodes.Values).Distinct().ToList()),
-                onPodConditions: new List<V1PodFailurePolicyOnPodConditionsPattern>(ruleA.OnPodConditions.Concat(ruleB.OnPodConditions).Distinct()));
+                onPodConditions: new List<V1PodFailurePolicyOnPodConditionsPattern>(
+                    ruleA.OnPodConditions.Concat(ruleB.OnPodConditions)
+                        .GroupBy(onPodCondition => onPodCondition.Type)
+                        .Select(group => group.First()).ToList()));
         }
 
         /// <summary>
@@ -543,10 +541,22 @@ namespace Snd.Sdk.Kubernetes
         }
 
         /// <summary>
-        /// Adds a policy failure action and exit codes to the job.
+        /// Converts a failure action to a V1PodFailurePolicyRule object with a rule to ignore Pod disruptions.
+        /// </summary>
+        /// <param name="action">A string the name of the action to be added as a rule to ignore Pod disruptions.</param>
+        /// <returns> A V1PodFailurePolicyRule object.</returns>
+        public static V1PodFailurePolicyRule ConvertToDisruptionTargetPolicyRule(string action)
+        {
+            return new V1PodFailurePolicyRule(
+                action: action,
+                onPodConditions: new List<V1PodFailurePolicyOnPodConditionsPattern> { new(status: "True", type: "DisruptionTarget") });
+        }
+
+        /// <summary>
+        /// Adds a policy failure action from a dictionary and a list of exit codes to the job.
         /// </summary>
         /// <param name="job">The job object to modify.</param>
-        /// <param name="actions">A list with all action names and corresponding exit code number.</param>
+        /// <param name="actions">A dictionary with actions and a list of exit code numbers for the action.</param>
         /// <returns>The Kubernetes Job object with added pod failure policy rules.</returns>>
         public static V1Job WithPodPolicyFailureExitCodes(this V1Job job, Dictionary<string, List<int>> actions)
         {
@@ -555,6 +565,26 @@ namespace Snd.Sdk.Kubernetes
 
             job.Spec.PodFailurePolicy.Rules = (job.Spec.PodFailurePolicy.Rules ?? new List<V1PodFailurePolicyRule>())
                 .Concat(actions.Select(ConvertToFailurePolicyRule))
+                .GroupBy(rule => rule.Action)
+                .Select(grp => grp.Aggregate(MergePodFailurePolicyRules))
+                .ToList();
+
+            return job;
+        }
+
+        /// <summary>
+        /// Adds a policy failure action of the type Disruption Target from a list of actions to the job.
+        /// </summary>
+        /// <param name="job">The job object to modify.</param>
+        /// <param name="actions">A list with all action names to attach on pod policy disruption target to.</param>
+        /// <returns>The Kubernetes Job object with added pod failure policy rules regarding disruption target.</returns>>
+        public static V1Job WithPodPolicyFailureDisruptionTarget(this V1Job job, List<string> actions)
+        {
+            job.Spec ??= new V1JobSpec();
+            job.Spec.PodFailurePolicy ??= new V1PodFailurePolicy();
+
+            job.Spec.PodFailurePolicy.Rules = (job.Spec.PodFailurePolicy.Rules ?? new List<V1PodFailurePolicyRule>())
+                .Concat(actions.Select(ConvertToDisruptionTargetPolicyRule))
                 .GroupBy(rule => rule.Action)
                 .Select(grp => grp.Aggregate(MergePodFailurePolicyRules))
                 .ToList();
@@ -576,26 +606,6 @@ namespace Snd.Sdk.Kubernetes
                 {
                     new(status: "True", type: "DisruptionTarget")
                 });
-        }
-
-        /// <summary>
-        /// Attaches disruption target to target pod policy failure actions and exit codes to the job.
-        /// </summary>
-        /// <param name="job">The job object to modify.</param>
-        /// <param name="actions">A list with all action names and corresponding exit code number to attach disruption target.</param>
-        /// <returns>The Kubernetes Job object with added pod failure policy rules with disruption target.</returns>>
-        public static V1Job WithPodPolicyFailureDisruptionTargetFailure(this V1Job job, Dictionary<string, List<int>> actions)
-        {
-            job.Spec ??= new V1JobSpec();
-            job.Spec.PodFailurePolicy ??= new V1PodFailurePolicy();
-
-            job.Spec.PodFailurePolicy.Rules = (job.Spec.PodFailurePolicy.Rules ?? new List<V1PodFailurePolicyRule>())
-                .Concat(actions.Select(AttachDisruptionTargetFailure))
-                .GroupBy(rule => rule.Action)
-                .Select(grp => grp.Aggregate(MergePodFailurePolicyRules))
-                .ToList();
-
-            return job;
         }
 
         /// <summary>
