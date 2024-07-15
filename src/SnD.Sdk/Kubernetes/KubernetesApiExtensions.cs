@@ -593,22 +593,6 @@ namespace Snd.Sdk.Kubernetes
         }
 
         /// <summary>
-        /// Attaches a Disruption Target failure to a given list of action.
-        /// </summary>
-        /// <param name="action">A key-value pair with the action name and a list of exit codes to attach a disruption target.</param>
-        /// <returns> A V1PodFailurePolicyRule object.</returns>
-        public static V1PodFailurePolicyRule AttachDisruptionTargetFailure(KeyValuePair<string, List<int>> action)
-        {
-            return new V1PodFailurePolicyRule(
-                action: action.Key,
-                onExitCodes: new V1PodFailurePolicyOnExitCodesRequirement(operatorProperty: "In", values: action.Value),
-                onPodConditions: new List<V1PodFailurePolicyOnPodConditionsPattern>
-                {
-                    new(status: "True", type: "DisruptionTarget")
-                });
-        }
-
-        /// <summary>
         /// Clones a job object.
         /// </summary>
         /// <param name="job">V1Job to clone.</param>
