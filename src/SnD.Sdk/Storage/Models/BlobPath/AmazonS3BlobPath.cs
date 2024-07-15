@@ -10,21 +10,29 @@ namespace Snd.Sdk.Storage.Models.BlobPath;
 public record AmazonS3StoragePath : IStoragePath
 {
     private const string matchRegex = "s3a://(?<bucket>[^/]+)/(?<key>.*)";
+    private readonly string objectKey;
 
     /// <summary>
     /// Blob bucket name
     /// </summary>
     public string Bucket { get; init; }
 
-    /// <inheritdoc cref="IStoragePath"/>
-    public string ObjectKey { get; init; }
+    /// <inheritdoc cref="IStoragePath.ObjectKey"/>
+    public string ObjectKey
+    {
+        get => this.objectKey;
+        init => this.objectKey = Regex.Replace(value.Trim('/'), "/+", "/");
+    }
+
+    /// <inheritdoc cref="IStoragePath.ToHdfsPath"/>
+    public string ToHdfsPath() => $"s3a://{this.Bucket}/{this.ObjectKey}";
 
     /// <inheritdoc cref="IStoragePath"/>
     public IStoragePath Join(string keyName)
     {
         return this with
         {
-            ObjectKey = $"{this.ObjectKey}/{keyName}"
+            ObjectKey = $"{this.ObjectKey}/{keyName.Trim('/')}"
         };
     }
 
@@ -42,11 +50,11 @@ public record AmazonS3StoragePath : IStoragePath
 
         if (!match.Success)
         {
-            throw new ArgumentException($"An {nameof(AmazonS3StoragePath)} must be in the format s3a://bucket/path, but was: {hdfspath}");
+            throw new ArgumentException($"An {nameof(AmazonS3StoragePath)} must be in the format s3a://bucket/path");
         }
 
-        Bucket = match.Groups["bucket"].Value;
-        ObjectKey = match.Groups["key"].Value;
+        this.Bucket = match.Groups["bucket"].Value;
+        this.ObjectKey = match.Groups["key"].Value;
     }
 
     /// <summary>
