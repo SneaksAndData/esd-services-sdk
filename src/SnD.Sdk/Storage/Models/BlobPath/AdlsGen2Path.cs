@@ -10,6 +10,7 @@ namespace Snd.Sdk.Storage.Models.BlobPath;
 public record AdlsGen2Path : IStoragePath
 {
     private const string matchRegex = @"^(abfss://)?(?<container>[^@:/]+)@(?<key>.+)$";
+    private readonly string objectKey;
 
     /// <summary>
     /// Blob container name
@@ -18,7 +19,11 @@ public record AdlsGen2Path : IStoragePath
 
 
     /// <inheritdoc cref="IStoragePath"/>
-    public string ObjectKey { get; init; }
+    public string ObjectKey
+    {
+        get => this.objectKey;
+        init => this.objectKey = Regex.Replace(value.Trim('/'), "/+", "/");
+    }
 
     /// <inheritdoc cref="IStoragePath"/>
     public IStoragePath Join(string keyName)
@@ -28,6 +33,9 @@ public record AdlsGen2Path : IStoragePath
             ObjectKey = $"{this.ObjectKey}/{keyName}"
         };
     }
+
+    /// <inheritdoc cref="IStoragePath.ToHdfsPath"/>
+    public string ToHdfsPath() => $"abfss://{this.Container}@{this.ObjectKey}";
 
     /// <summary>
     /// Converts HDFS path to an instance of <see cref="AdlsGen2Path"/>.
