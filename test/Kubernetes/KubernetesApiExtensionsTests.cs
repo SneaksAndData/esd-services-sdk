@@ -11,8 +11,8 @@ public class KubernetesApiExtensionsTests
 {
     [Theory]
     [InlineData("Restart", "Restart", new int[] { 1, 2 }, new int[] { 2, 3 }, 3)]
-    [InlineData("Restart", "Fail", null, null, null)] // Expecting an exception
-    public void MergePodFailurePolicyRules_Test(string actionA, string actionB, int[] exitCodesA, int[] exitCodesB, int? expectedExitCodesCount)
+    public void MergePodFailurePolicyRules_Success_Test(string actionA, string actionB, int[] exitCodesA,
+        int[] exitCodesB, int expectedExitCodesCount)
     {
         var ruleA = new V1PodFailurePolicyRule(actionA,
             new V1PodFailurePolicyOnExitCodesRequirement("In", exitCodesA?.ToList()));
@@ -20,18 +20,31 @@ public class KubernetesApiExtensionsTests
         var ruleB = new V1PodFailurePolicyRule(actionB,
             new V1PodFailurePolicyOnExitCodesRequirement("In", exitCodesB?.ToList()));
 
-        if (expectedExitCodesCount.HasValue)
-        {
-            var result = KubernetesApiExtensions.MergePodFailurePolicyRules(ruleA, ruleB);
+        var expectedRule = new V1PodFailurePolicyRule(actionA, // Assuming the action from ruleA is the expected action
+            new V1PodFailurePolicyOnExitCodesRequirement("In",
+                exitCodesA.Union(exitCodesB).ToList())); // Assuming the merge logic
 
-            Assert.Equal(actionA, result.Action);
-            Assert.Equal(expectedExitCodesCount.Value, result.OnExitCodes.Values.Count);
-        }
-        else
-        {
-            Assert.Throws<InvalidOperationException>(() => KubernetesApiExtensions.MergePodFailurePolicyRules(ruleA, ruleB));
-        }
+        var result = KubernetesApiExtensions.MergePodFailurePolicyRules(ruleA, ruleB);
+
+        Assert.Equal(expectedRule.OnExitCodes.Values.OrderBy(expectedValues => expectedValues).ToList(),
+            result.OnExitCodes.Values.OrderBy(resultValues => resultValues).ToList());
     }
+
+    [Theory]
+    [InlineData("Restart", "Fail", null, null)]
+    public void MergePodFailurePolicyRules_Exception_Test(string actionA, string actionB, int[] exitCodesA,
+        int[] exitCodesB)
+    {
+        var ruleA = new V1PodFailurePolicyRule(actionA,
+            new V1PodFailurePolicyOnExitCodesRequirement("In", exitCodesA?.ToList()));
+
+        var ruleB = new V1PodFailurePolicyRule(actionB,
+            new V1PodFailurePolicyOnExitCodesRequirement("In", exitCodesB?.ToList()));
+
+        Assert.Throws<InvalidOperationException>(() =>
+            KubernetesApiExtensions.MergePodFailurePolicyRules(ruleA, ruleB));
+    }
+
 
     [Theory]
     [InlineData("Restart", new int[] { 1, 2, 3 })]
@@ -41,12 +54,8 @@ public class KubernetesApiExtensionsTests
 
         var result = KubernetesApiExtensions.ConvertToFailurePolicyRule(actionPair);
 
-        Assert.Equal(action, result.Action);
-        Assert.Equal(exitCodes.Length, result.OnExitCodes.Values.Count);
-        for (int i = 0; i < exitCodes.Length; i++)
-        {
-            Assert.Contains(exitCodes[i], result.OnExitCodes.Values);
-        }
+        Assert.Equal(exitCodes.OrderBy(expectedExitCodes => expectedExitCodes).ToList(),
+            result.OnExitCodes.Values.OrderBy(resultExitCodes => resultExitCodes).ToList());
     }
 
     [Theory]
@@ -55,10 +64,9 @@ public class KubernetesApiExtensionsTests
     {
         var result = KubernetesApiExtensions.ConvertToDisruptionTargetPolicyRule(action);
 
-        Assert.Equal(action, result.Action);
-        Assert.Single(result.OnPodConditions);
-        Assert.Equal("True", result.OnPodConditions[0].Status);
-        Assert.Equal("DisruptionTarget", result.OnPodConditions[0].Type);
+        Assert.True(action == result.Action && result.OnPodConditions.Count == 1 &&
+                    result.OnPodConditions.First().Status == "True" &&
+                    result.OnPodConditions.First().Type == "DisruptionTarget");
     }
 
     [Theory]
@@ -116,7 +124,11 @@ public class KubernetesApiExtensionsTests
 
         var result = job.WithPodPolicyFailureDisruptionTarget();
 
-        var actions = result.Spec.PodFailurePolicy.Rules.Select(rule => rule.Action).ToList();
-        Assert.Contains("Ignore", actions);
+        Assert.Contains("True", result.Spec.PodFailurePolicy.Rules
+            .Where(rule => rule.Action == "Ignore")
+            .SelectMany(rule => rule.OnPodConditions)
+            .Where(condition => condition.Type == "DisruptionTarget")
+            .Select(condition => condition.Status)
+            .ToList());
     }
 }

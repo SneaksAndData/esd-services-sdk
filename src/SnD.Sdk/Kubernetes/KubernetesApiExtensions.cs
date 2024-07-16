@@ -24,7 +24,13 @@ namespace Snd.Sdk.Kubernetes
     /// </summary>
     public enum PodFailurePolicyAction
     {
+        /// <summary>
+        /// The job should fail when a pod fails.
+        /// </summary>
         FailJob,
+        /// <summary>
+        /// The job should ignore the failure of a pod.
+        /// </summary>
         Ignore
     }
 
