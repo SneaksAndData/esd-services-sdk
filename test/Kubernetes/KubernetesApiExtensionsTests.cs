@@ -110,7 +110,7 @@ public class KubernetesApiExtensionsTests
     }
 
     [Fact]
-    public void WithPodPolicyFailureDisruptionTarget_AddsIgnoreRule()
+    public void WithPodPolicyFailureDisruptionTarget()
     {
         var job = new V1Job();
 
