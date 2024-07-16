@@ -35,4 +35,13 @@ public interface IBlobStorageWriter
     /// <param name="blobName">Blob name.</param>
     /// <returns></returns>
     Task<bool> RemoveBlob(string blobPath, string blobName);
+    
+    /// <summary>
+    /// Generates a pre-signed URL that can be used to read the blob over HTTP(S) protocol.
+    /// </summary>
+    /// <param name="blobPath">Path to the blob.</param>
+    /// <param name="blobName">Name of the blob.</param>
+    /// <param name="kwOptions">Additional key-value arguments for URI generator.</param>
+    /// <returns></returns>
+    Uri GetBlobUri(string blobPath, string blobName, params ValueTuple<string, object>[] kwOptions);
 }

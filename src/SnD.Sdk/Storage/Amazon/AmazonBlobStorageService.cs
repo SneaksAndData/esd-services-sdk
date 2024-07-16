@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Streams.Dsl;
@@ -99,6 +100,24 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
                 this.logger.LogError("Failed to delete blob {blobName} from {bucket}", blobName, path.Bucket);
                 return false;
             });
+    }
+
+    /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    public Uri GetBlobUri(string blobPath, string blobName, params (string, object)[] kwOptions)
+    {
+        var path = blobPath.AsAmazonS3Path();
+        var signingOptions = kwOptions.ToDictionary(opt => opt.Item1, opt => opt.Item2);
+        var duration = (double)signingOptions.GetValueOrDefault("validForSeconds", 60d);
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = path.Bucket,
+            Key = path.Join(blobName).ObjectKey,
+            Expires = DateTime.UtcNow.AddSeconds(duration),
+            Protocol = Protocol.HTTPS,
+            Verb = HttpVerb.GET,
+        };
+        return new Uri(this.client.GetPreSignedURL(request));
     }
 
     /// <inheritdoc/>

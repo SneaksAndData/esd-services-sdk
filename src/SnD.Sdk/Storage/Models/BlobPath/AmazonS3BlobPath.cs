@@ -40,7 +40,7 @@ public record AmazonS3StoragePath : IStoragePath
     /// <summary>
     /// Converts HDFS path to an instance of <see cref="AmazonS3StoragePath"/>.
     /// </summary>
-    /// <param name="hdfspath">HDFS path in format abfss://container@/path</param>
+    /// <param name="hdfspath">HDFS path in format s3a://bucket/path</param>
     /// <returns>Path instance</returns>
     /// <exception cref="ArgumentException">If path does not match the format</exception>
     public AmazonS3StoragePath(string hdfspath)

@@ -38,13 +38,4 @@ public interface IBlobStorageService : IBlobStorageReader,
     /// <param name="targetBlobName">Name of a target blob.</param>
     /// <returns></returns>
     Task<bool> MoveBlob(string sourcePath, string sourceName, string targetPath, string targetBlobName);
-
-    /// <summary>
-    /// Generates an pre-authenticated URL that can be used to read the blob over HTTP protocol.
-    /// </summary>
-    /// <param name="blobPath">Path to the blob.</param>
-    /// <param name="blobName">Name of the blob.</param>
-    /// <param name="kwOptions">Additional key-value arguments for URI generator.</param>
-    /// <returns></returns>
-    Uri GetBlobUri(string blobPath, string blobName, params ValueTuple<string, object>[] kwOptions);
 }

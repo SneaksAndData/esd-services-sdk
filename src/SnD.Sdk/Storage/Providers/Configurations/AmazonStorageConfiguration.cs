@@ -24,12 +24,17 @@ namespace Snd.Sdk.Storage.Providers.Configurations
         public Uri ServiceUrl { get; init; }
 
         /// <summary>
-        /// Force HTTP protocol
+        /// API region.
         /// </summary>
         public string AuthenticationRegion { get; init; }
+        
+        /// <summary>
+        /// Signing algorithm version (v2/v4).
+        /// </summary>
+        public string SignatureVersion { get; init; }
 
         /// <summary>
-        /// Force HTTP protocol
+        /// Force HTTP protocol.
         /// </summary>
         public bool UseHttp => ServiceUrl.Scheme == "http";
 
@@ -44,7 +49,8 @@ namespace Snd.Sdk.Storage.Providers.Configurations
                 AccessKey = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_ACCESS_KEY_ID"),
                 SecretKey = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_SECRET_ACCESS_KEY"),
                 ServiceUrl = new Uri(EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_ENDPOINT_URL")),
-                AuthenticationRegion = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_REGION")
+                AuthenticationRegion = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_REGION"),
+                SignatureVersion = EnvironmentExtensions.GetDomainEnvironmentVariable("AWS_SIGNATURE_VERSION", "v4")
             };
         }
     }
