@@ -71,7 +71,9 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
         {
             BucketName = path.Bucket,
             Key = path.Join(blobName).ObjectKey,
-            ContentBody = text
+            ContentBody = text,
+            CalculateContentMD5Header = true,
+            ChecksumAlgorithm = ChecksumAlgorithm.SHA256
         };
         return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
         {
