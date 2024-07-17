@@ -11,7 +11,7 @@ public class KubernetesApiExtensionsTests
 {
     [Theory]
     [InlineData("Restart", "Restart", new int[] { 1, 2 }, new int[] { 2, 3 })]
-    public void MergePodFailurePolicyRules_Success_Test(string actionA, string actionB, int[] exitCodesA,
+    public void MergePodFailurePolicyRules(string actionA, string actionB, int[] exitCodesA,
         int[] exitCodesB)
     {
         var ruleA = new V1PodFailurePolicyRule(actionA,
