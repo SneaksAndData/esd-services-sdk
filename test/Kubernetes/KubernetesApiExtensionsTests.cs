@@ -48,7 +48,7 @@ public class KubernetesApiExtensionsTests
 
     [Theory]
     [InlineData("Restart", new int[] { 1, 2, 3 })]
-    public void ConvertToFailurePolicyRule_ValidConversion(string action, int[] exitCodes)
+    public void ConvertToFailurePolicyRule(string action, int[] exitCodes)
     {
         var actionPair = new KeyValuePair<string, List<int>>(action, new List<int>(exitCodes));
 
