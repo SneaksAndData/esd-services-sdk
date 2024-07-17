@@ -29,6 +29,8 @@ namespace Snd.Sdk.Storage.Providers
                 ForcePathStyle = true,
                 ServiceURL = awsConfig.ServiceUrl.ToString(),
                 UseAccelerateEndpoint = false,
+                AuthenticationRegion = awsConfig.AuthenticationRegion,
+                SignatureVersion = awsConfig.SignatureVersion
             };
 
             services.AddSingleton<IAmazonS3>(new AmazonS3Client(awsConfig.AccessKey, awsConfig.SecretKey, clientConfig));

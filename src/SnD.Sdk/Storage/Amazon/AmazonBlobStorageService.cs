@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Streams.Dsl;
@@ -24,6 +25,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
 {
     private readonly IAmazonS3 client;
     private readonly ILogger<AmazonBlobStorageService> logger;
+    private const double DEFAULT_SIGNED_URL_VALIDITY_SECONDS = 60d;
 
     /// <summary>
     /// Creates a new instance of S3BlobStorageService.
@@ -99,6 +101,24 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
                 this.logger.LogError("Failed to delete blob {blobName} from {bucket}", blobName, path.Bucket);
                 return false;
             });
+    }
+
+    /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    public Uri GetBlobUri(string blobPath, string blobName, params (string, object)[] kwOptions)
+    {
+        var path = blobPath.AsAmazonS3Path();
+        var signingOptions = kwOptions.ToDictionary(opt => opt.Item1, opt => opt.Item2);
+        var duration = (double)signingOptions.GetValueOrDefault("validForSeconds", DEFAULT_SIGNED_URL_VALIDITY_SECONDS);
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = path.Bucket,
+            Key = path.Join(blobName).ObjectKey,
+            Expires = DateTime.UtcNow.AddSeconds(duration),
+            Protocol = Protocol.HTTPS,
+            Verb = HttpVerb.GET,
+        };
+        return new Uri(this.client.GetPreSignedURL(request));
     }
 
     /// <inheritdoc/>
