@@ -32,7 +32,7 @@ public class KubernetesApiExtensionsTests
 
     [Theory]
     [InlineData("Restart", "Fail", null, null)]
-    public void MergePodFailurePolicyRules_Exception_Test(string actionA, string actionB, int[] exitCodesA,
+    public void MergePodFailurePolicyRulesFailsOnActionMismatch(string actionA, string actionB, int[] exitCodesA,
         int[] exitCodesB)
     {
         var ruleA = new V1PodFailurePolicyRule(actionA,
