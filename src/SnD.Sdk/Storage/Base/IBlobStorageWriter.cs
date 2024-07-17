@@ -35,7 +35,7 @@ public interface IBlobStorageWriter
     /// <param name="blobName">Blob name.</param>
     /// <returns></returns>
     Task<bool> RemoveBlob(string blobPath, string blobName);
-    
+
     /// <summary>
     /// Generates a pre-signed URL that can be used to read the blob over HTTP(S) protocol.
     /// </summary>

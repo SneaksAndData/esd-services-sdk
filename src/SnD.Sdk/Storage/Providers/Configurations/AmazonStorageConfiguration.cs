@@ -27,7 +27,7 @@ namespace Snd.Sdk.Storage.Providers.Configurations
         /// API region.
         /// </summary>
         public string AuthenticationRegion { get; init; }
-        
+
         /// <summary>
         /// Signing algorithm version (v2/v4).
         /// </summary>

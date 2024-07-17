@@ -25,6 +25,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
 {
     private readonly IAmazonS3 client;
     private readonly ILogger<AmazonBlobStorageService> logger;
+    private const double DEFAULT_SIGNED_URL_VALIDITY_SECONDS = 60d;
 
     /// <summary>
     /// Creates a new instance of S3BlobStorageService.
@@ -108,7 +109,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
     {
         var path = blobPath.AsAmazonS3Path();
         var signingOptions = kwOptions.ToDictionary(opt => opt.Item1, opt => opt.Item2);
-        var duration = (double)signingOptions.GetValueOrDefault("validForSeconds", 60d);
+        var duration = (double)signingOptions.GetValueOrDefault("validForSeconds", DEFAULT_SIGNED_URL_VALIDITY_SECONDS);
         var request = new GetPreSignedUrlRequest
         {
             BucketName = path.Bucket,
