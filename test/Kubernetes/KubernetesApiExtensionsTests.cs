@@ -60,7 +60,7 @@ public class KubernetesApiExtensionsTests
 
     [Theory]
     [InlineData("Ignore")]
-    public void ConvertToDisruptionTargetPolicyRule_ValidConversion(string action)
+    public void ConvertToDisruptionTargetPolicyRule(string action)
     {
         var result = KubernetesApiExtensions.ConvertToDisruptionTargetPolicyRule(action);
 
