@@ -131,4 +131,27 @@ public class KubernetesApiExtensionsTests
             .Select(condition => condition.Status)
             .ToList());
     }
+
+    [Theory]
+    [InlineData("Ignore", new int[] { 128, 137, 139 })]
+    [InlineData("Restart", new int[] { 1, 2 })]
+    [InlineData("Fail", new int[] { 255 })]
+    public void WithPodPolicyFailureExitCodes(string actionName, int[] exitCodes)
+    {
+        var job = new V1Job();
+
+        var actions = new Dictionary<string, List<int>>
+        {
+            { actionName, new List<int>(exitCodes) }
+        };
+
+        var result = job.WithPodPolicyFailureExitCodes(actions);
+
+        foreach (var action in actions)
+        {
+            Assert.Contains(result.Spec.PodFailurePolicy.Rules, rule =>
+                rule.Action == action.Key &&
+                action.Value.All(exitCode => rule.OnExitCodes.Values.Contains(exitCode)));
+        }
+    }
 }
