@@ -576,6 +576,7 @@ namespace Snd.Sdk.Kubernetes
 
             job.Spec.PodFailurePolicy.Rules = (job.Spec.PodFailurePolicy.Rules ?? new List<V1PodFailurePolicyRule>())
                 .Concat(actions.Select(ConvertToFailurePolicyRule))
+                .Where(rule => rule.OnExitCodes != null)
                 .GroupBy(rule => rule.Action)
                 .Select(grp => grp.Aggregate(MergePodFailurePolicyRules))
                 .ToList();
