@@ -144,11 +144,11 @@ public class KubernetesApiExtensionsTests
 
         var result = job.WithPodPolicyFailureExitCodes(actions);
 
-       foreach (var action in actions)
-       {
-           Assert.Contains(result.Spec.PodFailurePolicy.Rules, rule =>
-               rule.Action == action.Key &&
-               action.Value.All(exitCode => rule.OnExitCodes.Values.Contains(exitCode)));
-       }
+        foreach (var action in actions)
+        {
+            Assert.Contains(result.Spec.PodFailurePolicy.Rules, rule =>
+                rule.Action == action.Key &&
+                action.Value.All(exitCode => rule.OnExitCodes.Values.Contains(exitCode)));
+        }
     }
 }
