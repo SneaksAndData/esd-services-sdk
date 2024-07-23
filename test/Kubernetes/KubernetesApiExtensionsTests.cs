@@ -132,15 +132,18 @@ public class KubernetesApiExtensionsTests
             .ToList());
     }
 
-    [Fact]
-    public void WithPodPolicyFailureExitCodes()
+    [Theory]
+    [InlineData("Ignore", new int[] { 128, 137, 139 })]
+    [InlineData("Restart", new int[] { 1, 2 })]
+    [InlineData("Fail", new int[] { 255 })]
+    public void WithPodPolicyFailureExitCodes(string actionName, int[] exitCodes)
     {
         var job = new V1Job();
 
         var actions = new Dictionary<string, List<int>>
-       {
-           { "Ignore", new List<int> {128 , 137, 139}}
-       };
+        {
+            { actionName, new List<int>(exitCodes) }
+        };
 
         var result = job.WithPodPolicyFailureExitCodes(actions);
 
