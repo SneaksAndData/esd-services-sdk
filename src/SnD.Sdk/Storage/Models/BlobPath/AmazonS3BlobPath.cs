@@ -27,7 +27,7 @@ public record AmazonS3StoragePath : IStoragePath
     {
         return this with
         {
-            ObjectKey = $"{this.ObjectKey}/{keyName.Trim('/')}"
+            ObjectKey = string.IsNullOrEmpty(this.ObjectKey) ? keyName : $"{this.ObjectKey}/{keyName.TrimStart('/')}"
         };
     }
 
