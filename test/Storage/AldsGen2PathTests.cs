@@ -36,7 +36,7 @@ public class AdlsGen2PathTests
         const string pathStart = "abfss://container@/";
 
         // Act
-        var storagePath = new AdlsGen2Path(pathStart).Join("/folder1/folder2/file.txt");
+        var storagePath = new AdlsGen2Path(pathStart).Join("folder1/folder2/file.txt");
 
         // Assert
         Assert.Equal(path, storagePath.ToHdfsPath());
@@ -47,11 +47,12 @@ public class AdlsGen2PathTests
     {
         // Arrange
         const string pathStart = "abfss://container@/";
+        const string expected = "abfss://container@folder1///folder2/file.txt";
 
         // Act
         var storagePath = new AdlsGen2Path(pathStart).Join("/folder1///folder2/file.txt");
 
         // Assert
-        Assert.Equal(path, storagePath.ToHdfsPath());
+        Assert.Equal(expected, storagePath.ToHdfsPath());
     }
 }

@@ -43,19 +43,23 @@ public class AmazonS3BlobStoragePathTests
         var storagePath = new AmazonS3StoragePath(path).Join("/folder1/folder2/file.txt");
 
         // Assert
-        Assert.Equal("s3a://bucket-name/folder1/folder2/file.txt", storagePath.ToHdfsPath());
+        Assert.Equal("s3a://bucket-name//folder1/folder2/file.txt", storagePath.ToHdfsPath());
     }
 
-    [Fact]
-    public static void TrimsDuplicatedSlashes()
+    [Theory]
+    [InlineData("s3a://bucket-name/", "/folder1///folder2/file.txt", "s3a://bucket-name//folder1///folder2/file.txt")]
+    [InlineData("s3a://bucket-name/", "folder1///folder2/file.txt", "s3a://bucket-name/folder1///folder2/file.txt")]
+    [InlineData("s3a://bucket-name", "folder1///folder2/file.txt", "s3a://bucket-name/folder1///folder2/file.txt")]
+    [InlineData("s3a://bucket-name", "/folder1///folder2/file.txt", "s3a://bucket-name//folder1///folder2/file.txt")]
+    public static void TrimsDuplicatedSlashes(string bucketName, string objectKey, string expected)
     {
         // Arrange
-        const string path = "s3a://bucket-name/";
+        var path = bucketName;
 
         // Act
-        var storagePath = new AmazonS3StoragePath(path).Join("/folder1///folder2/file.txt");
+        var storagePath = new AmazonS3StoragePath(path).Join(objectKey);
 
         // Assert
-        Assert.Equal("s3a://bucket-name/folder1/folder2/file.txt", storagePath.ToHdfsPath());
+        Assert.Equal(expected, storagePath.ToHdfsPath());
     }
 }
