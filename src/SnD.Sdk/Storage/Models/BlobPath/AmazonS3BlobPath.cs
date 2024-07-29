@@ -51,6 +51,17 @@ public record AmazonS3StoragePath : IStoragePath
         this.Bucket = match.Groups["bucket"].Value;
         this.ObjectKey = match.Groups["key"].Value;
     }
+    
+    /// <summary>
+    /// Creates a new instance of <see cref="AmazonS3StoragePath"/> from bucket and object key.
+    /// <param name="bucket">Bucket name</param>
+    /// <param name="objectKey">Object key</param>
+    /// </summary>
+    public AmazonS3StoragePath(string bucket, string objectKey)
+    {
+        this.Bucket = bucket;
+        this.ObjectKey = objectKey;
+    }
 
     /// <summary>
     /// Tests is path can be converted to <see cref="AmazonS3StoragePath"/>
