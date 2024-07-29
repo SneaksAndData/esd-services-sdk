@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Snd.Sdk.Helpers;
 using Snd.Sdk.Tasks;
 using Snd.Sdk.Storage.Base;
+using SnD.Sdk.Storage.Base.Typed;
 using Snd.Sdk.Storage.Models;
 using Snd.Sdk.Storage.Models.BlobPath;
 
@@ -21,7 +22,8 @@ namespace Snd.Sdk.Storage.Amazon;
 /// Blob Service implementation for S3-compatible object storage.
 /// Blob path for this service should be in format s3://bucket-name/path
 /// </summary>
-public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListService, IBlobStorageReader
+public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListService, IBlobStorageReader,
+    ITypedBlobStorageReader<AmazonS3StoragePath>, ITypedBlobStorageWriter<AmazonS3StoragePath>
 {
     private readonly IAmazonS3 client;
     private readonly ILogger<AmazonBlobStorageService> logger;
@@ -41,26 +43,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
     /// <inheritdoc/>
     public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, string blobPath, string blobName, bool overwrite = false)
     {
-        var path = blobPath.AsAmazonS3Path();
-        var ms = new MemoryStream();
-        ms.Write(bytes);
-        var request = new PutObjectRequest
-        {
-            BucketName = path.Bucket,
-            Key = path.Join(blobName).ObjectKey,
-            InputStream = ms,
-            AutoCloseStream = true
-        };
-        return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
-        {
-            Name = blobName,
-            ContentHash = result.ChecksumSHA256,
-            LastModified = DateTimeOffset.UtcNow
-        }, exception =>
-        {
-            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}", blobName, path.Bucket);
-            return default;
-        });
+        return this.SaveBytesAsBlob(bytes, $"{blobPath}/{blobName}".AsAmazonS3Path(), overwrite);
     }
 
     /// <inheritdoc/>
@@ -91,18 +74,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
     public Task<bool> RemoveBlob(string blobPath, string blobName)
     {
         var path = $"{blobPath}/{blobName}".AsAmazonS3Path();
-        var request = new DeleteObjectRequest
-        {
-            BucketName = path.Bucket,
-            Key = path.ObjectKey
-        };
-        return this.client
-            .DeleteObjectAsync(request)
-            .TryMap(success => true, exception =>
-            {
-                this.logger.LogError("Failed to delete blob {blobName} from {bucket}", blobName, path.Bucket);
-                return false;
-            });
+        return this.RemoveBlob(path);
     }
 
     /// <inheritdoc/>
@@ -157,24 +129,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
     public Task<T> GetBlobContentAsync<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
     {
-        var path = $"{blobPath}/{blobName}".AsAmazonS3Path();
-        var request = new GetObjectRequest
-        {
-            BucketName = path.Bucket,
-            Key = path.ObjectKey
-        };
-        return this.client
-            .GetObjectAsync(request)
-            .TryMap(c =>
-            {
-                using var memoryStream = new MemoryStream();
-                c.ResponseStream.CopyTo(memoryStream);
-                return deserializer(new BinaryData(memoryStream.ToArray()));
-            }, exception =>
-            {
-                this.logger.LogError(exception, "Could not download blob {blobName} from {bucket}", blobName, path.Bucket);
-                return default;
-            });
+        return this.GetBlobContentAsync($"{blobPath}/{blobName}".AsAmazonS3Path(), deserializer);
     }
 
     /// <inheritdoc/>
@@ -222,5 +177,71 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
             Prefix = path.ObjectKey
         });
         return paginator.S3Objects;
+    }
+
+    /// <inheritdoc/>
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    public Task<T> GetBlobContentAsync<T>(AmazonS3StoragePath blobPath, Func<BinaryData, T> deserializer)
+    {
+        var request = new GetObjectRequest
+        {
+            BucketName = blobPath.Bucket,
+            Key = blobPath.ObjectKey
+        };
+        return this.client
+            .GetObjectAsync(request)
+            .TryMap(c =>
+            {
+                using var memoryStream = new MemoryStream();
+                c.ResponseStream.CopyTo(memoryStream);
+                return deserializer(new BinaryData(memoryStream.ToArray()));
+            }, exception =>
+            {
+                this.logger.LogError(exception, "Could not download blob {blobName}", blobPath);
+                return default;
+            });
+    }
+
+    /// <inheritdoc/>
+    public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, AmazonS3StoragePath blobPath, bool overwrite = false)
+    {
+        var ms = new MemoryStream();
+        ms.Write(bytes);
+        var request = new PutObjectRequest
+        {
+            BucketName = blobPath.Bucket,
+            Key = blobPath.ObjectKey,
+            InputStream = ms,
+            AutoCloseStream = true
+        };
+        return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
+        {
+            Name = blobPath.ObjectKey,
+            ContentHash = result.ChecksumSHA256,
+            LastModified = DateTimeOffset.UtcNow
+        }, exception =>
+        {
+            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}",
+                blobPath.ObjectKey,
+                blobPath.Bucket);
+            return default;
+        });
+    }
+
+    /// <inheritdoc/>
+    public Task<bool> RemoveBlob(AmazonS3StoragePath blobPath)
+    {
+        var request = new DeleteObjectRequest
+        {
+            BucketName = blobPath.Bucket,
+            Key = blobPath.ObjectKey
+        };
+        return this.client
+            .DeleteObjectAsync(request)
+            .TryMap(success => true, exception =>
+            {
+                this.logger.LogError("Failed to delete blob {blobName} from {bucket}", blobPath.ObjectKey, blobPath.Bucket);
+                return false;
+            });
     }
 }
