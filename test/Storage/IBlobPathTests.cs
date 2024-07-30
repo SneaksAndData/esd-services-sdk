@@ -14,7 +14,7 @@ public class IBlobPathTests
     {
         var adlsPath = path.AsAdlsGen2Path();
         Assert.Equal("container", adlsPath.Container);
-        Assert.Equal("key", adlsPath.ObjectKey);
+        Assert.Equal("key", adlsPath.BlobName);
     }
 
     [Theory]

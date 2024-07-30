@@ -55,6 +55,8 @@ namespace Snd.Sdk.Tests.Storage.Azure
         [InlineData("testcontainer@test/folderA/folderB", "testblob", "some content", false, BlobException.OTHER)]
         public void GetBlobContent(string blobPath, string blobName, string content, bool asJson, BlobException? exception)
         {
+            var adlsPath = new AdlsGen2Path(blobPath, blobName);
+
             var mockCc = new Mock<BlobContainerClient>();
             var mockBc = new Mock<BlobClient>();
             var mockContent = Encoding.UTF8.GetBytes(content);
@@ -72,27 +74,27 @@ namespace Snd.Sdk.Tests.Storage.Azure
                     break;
             }
 
-            mockCc.Setup(mcc => mcc.GetBlobClient($"{blobPath.AsAdlsGen2Path().ObjectKey}/{blobName}")).Returns(mockBc.Object);
+            mockCc.Setup(mcc => mcc.GetBlobClient($"{blobPath.AsAdlsGen2Path().FullPath}/{blobName}")).Returns(mockBc.Object);
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(blobPath.AsAdlsGen2Path().Container)).Returns(mockCc.Object);
 
             if (exception.HasValue)
             {
                 if (exception == BlobException.JSON)
                 {
-                    Assert.Null(this.azureBlobService.GetBlobContent<string>(blobPath, blobName, (bd) => throw new JsonException("test json")));
+                    Assert.Null(this.azureBlobService.GetBlobContent<string>(adlsPath, (bd) => throw new JsonException("test json")));
                 }
                 else
                 {
-                    Assert.Null(this.azureBlobService.GetBlobContent<string>(blobPath, blobName, (bd) => bd.ToString()));
+                    Assert.Null(this.azureBlobService.GetBlobContent<string>(adlsPath, (bd) => bd.ToString()));
                 }
             }
             else if (asJson)
             {
-                Assert.NotNull(this.azureBlobService.GetBlobContent(blobPath, blobName, (bd) => JsonSerializer.Deserialize<JsonObject>(bd.ToString())));
+                Assert.NotNull(this.azureBlobService.GetBlobContent(adlsPath, (bd) => JsonSerializer.Deserialize<JsonObject>(bd.ToString())));
             }
             else
             {
-                Assert.NotNull(this.azureBlobService.GetBlobContent(blobPath, blobName, (bd) => bd.ToString()));
+                Assert.NotNull(this.azureBlobService.GetBlobContent(adlsPath, (bd) => bd.ToString()));
             }
         }
 
@@ -104,7 +106,7 @@ namespace Snd.Sdk.Tests.Storage.Azure
             var mockCc = new Mock<BlobContainerClient>();
             var mockBc = new Mock<BlobClient>();
             mockBc.Setup(mbc => mbc.GetProperties(null, default)).Returns(Response.FromValue(BlobsModelFactory.BlobProperties(metadata: new Dictionary<string, string> { { "testKey", "testValue" } }), new MockAzureResponse(200)));
-            mockCc.Setup(mcc => mcc.GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path().ObjectKey)).Returns(mockBc.Object);
+            mockCc.Setup(mcc => mcc.GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path().FullPath)).Returns(mockBc.Object);
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(blobPath.AsAdlsGen2Path().Container)).Returns(mockCc.Object);
 
             var result = this.azureBlobService.GetBlobMetadata(blobPath, blobName);
@@ -139,7 +141,7 @@ namespace Snd.Sdk.Tests.Storage.Azure
                         null,
                         null)
                     ).ToList(), ixp == 9 ? null : ixp.ToString(), new MockAzureResponse(200)));
-            mockCc.Setup(mcc => mcc.GetBlobs(BlobTraits.None, BlobStates.None, blobPath.AsAdlsGen2Path().ObjectKey, default)).Returns(Pageable<BlobItem>.FromPages(mockBlobs));
+            mockCc.Setup(mcc => mcc.GetBlobs(BlobTraits.None, BlobStates.None, blobPath.AsAdlsGen2Path().FullPath, default)).Returns(Pageable<BlobItem>.FromPages(mockBlobs));
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(blobPath.AsAdlsGen2Path().Container)).Returns(mockCc.Object);
 
             var result = await this.azureBlobService.ListBlobs(blobPath).RunWith(Sink.Seq<StoredBlob>(), this.akkaFixture.Materializer);
@@ -161,8 +163,8 @@ namespace Snd.Sdk.Tests.Storage.Azure
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(sourcePath.AsAdlsGen2Path().Container)).Returns(mockSourceCc.Object);
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(targetPath.AsAdlsGen2Path().Container)).Returns(mockTargetCc.Object);
 
-            mockSourceCc.Setup(msc => msc.GetBlobClient($"{sourcePath}/{sourceName}".AsAdlsGen2Path().ObjectKey)).Returns(mockSourceBc.Object);
-            mockTargetCc.Setup(msc => msc.GetBlobClient($"{targetPath}/{targetName}".AsAdlsGen2Path().ObjectKey)).Returns(mockTargetBc.Object);
+            mockSourceCc.Setup(msc => msc.GetBlobClient($"{sourcePath}/{sourceName}".AsAdlsGen2Path().FullPath)).Returns(mockSourceBc.Object);
+            mockTargetCc.Setup(msc => msc.GetBlobClient($"{targetPath}/{targetName}".AsAdlsGen2Path().FullPath)).Returns(mockTargetBc.Object);
 
             mockSourceBc.Setup(mbc => mbc.GenerateSasUri(It.IsAny<BlobSasPermissions>(), It.IsAny<DateTimeOffset>())).Returns(copyUri);
             mockSourceBc.Setup(mbc => mbc.DeleteIfExistsAsync(DeleteSnapshotsOption.None, null, default)).ReturnsAsync(Response.FromValue(true, new MockAzureResponse(200)));
@@ -180,12 +182,13 @@ namespace Snd.Sdk.Tests.Storage.Azure
         {
             var mockCc = new Mock<BlobContainerClient>();
             var mockBc = new Mock<BlobClient>();
+            var adlsPath = new AdlsGen2Path(blobPath, blobName);
 
             mockBc.Setup(mbc => mbc.DeleteIfExistsAsync(DeleteSnapshotsOption.None, null, default)).ReturnsAsync(Response.FromValue(true, new MockAzureResponse(200)));
-            mockCc.Setup(mcc => mcc.GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path().ObjectKey)).Returns(mockBc.Object);
+            mockCc.Setup(mcc => mcc.GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path().FullPath)).Returns(mockBc.Object);
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(blobPath.AsAdlsGen2Path().Container)).Returns(mockCc.Object);
 
-            var result = await this.azureBlobService.RemoveBlob(blobPath, blobName);
+            var result = await this.azureBlobService.RemoveBlob(adlsPath);
 
             Assert.True(result);
         }
@@ -195,13 +198,14 @@ namespace Snd.Sdk.Tests.Storage.Azure
         public async Task SaveTextAsBlob(string blobPath, string blobName, string content)
         {
             var mockCc = new Mock<BlobContainerClient>();
+            var adlsPath = new AdlsGen2Path(blobPath, blobName);
 
             mockCc.Setup(mcc => mcc.UploadBlobAsync(It.IsAny<string>(), It.IsAny<BinaryData>(), default)).ReturnsAsync(Response.FromValue(BlobsModelFactory.BlobContentInfo(ETag.All, DateTimeOffset.UtcNow, Encoding.UTF8.GetBytes(content), "1", "", "", 1), new MockAzureResponse(200)));
             this.mockServiceClient.Setup(msc => msc.GetBlobContainerClient(blobPath.AsAdlsGen2Path().Container)).Returns(mockCc.Object);
 
-            var result = await this.azureBlobService.SaveTextAsBlob(content, blobPath, blobName);
+            var result = await this.azureBlobService.SaveTextAsBlob(content, adlsPath);
 
-            Assert.Equal($"{blobPath}/{blobName}".AsAdlsGen2Path().ObjectKey, result.Name);
+            Assert.Equal($"{blobPath}/{blobName}".AsAdlsGen2Path().FullPath, result.Name);
         }
 
         [Theory]

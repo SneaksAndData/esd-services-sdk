@@ -53,6 +53,18 @@ public record AmazonS3StoragePath : IStoragePath
     }
 
     /// <summary>
+    /// Creates a new instance of <see cref="AmazonS3StoragePath"/> with the specified bucket and key.
+    /// </summary>
+    /// <param name="bucket">Bucket name</param>
+    /// <param name="key">Key within the bucket</param>
+    /// <exception cref="ArgumentException"></exception>
+    public AmazonS3StoragePath(string bucket, string key)
+    {
+        this.Bucket = bucket.Trim('/');
+        this.ObjectKey = key.Trim('/');
+    }
+
+    /// <summary>
     /// Tests is path can be converted to <see cref="AmazonS3StoragePath"/>
     /// </summary>
     /// <param name="hdfsPath">Path to check</param>

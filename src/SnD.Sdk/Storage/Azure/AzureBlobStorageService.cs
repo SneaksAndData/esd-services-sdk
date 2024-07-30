@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Snd.Sdk.Helpers;
 using Snd.Sdk.Storage.Base;
 using Snd.Sdk.Storage.Models;
+using Snd.Sdk.Storage.Models.BlobPath;
 
 namespace Snd.Sdk.Storage.Azure
 {
@@ -26,16 +27,15 @@ namespace Snd.Sdk.Storage.Azure
     /// Blob Service implementation for Azure.
     /// Blob path for this service should be in format container@my/blob/path
     /// </summary>
-    public class AzureBlobStorageService : IBlobStorageService
+    public class AzureBlobStorageService : IBlobStorageService<AdlsGen2Path>
     {
         private readonly BlobServiceClient blobServiceClient;
         private readonly ILogger<AzureBlobStorageService> logger;
 
-        private BlobClient GetBlobClient(string blobPath, string blobName)
+        private BlobClient GetBlobClient(AdlsGen2Path path)
         {
-            var adlsGen2Path = blobPath.AsAdlsGen2Path();
-            var bcc = this.blobServiceClient.GetBlobContainerClient(adlsGen2Path.Container);
-            return bcc.GetBlobClient($"{adlsGen2Path.ObjectKey}/{blobName}");
+            var bcc = this.blobServiceClient.GetBlobContainerClient(path.Container);
+            return bcc.GetBlobClient($"{path.BlobPath}/{path.BlobName}");
         }
 
         /// <summary>
@@ -50,9 +50,9 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public T GetBlobContent<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+        public T GetBlobContent<T>(AdlsGen2Path path, Func<BinaryData, T> deserializer)
         {
-            var bc = GetBlobClient(blobPath, blobName);
+            var bc = GetBlobClient(path);
             try
             {
                 var content = bc.DownloadContent().Value.Content;
@@ -60,48 +60,48 @@ namespace Snd.Sdk.Storage.Azure
             }
             catch (RequestFailedException rfex)
             {
-                this.logger.LogError(rfex, "File {blobName} does not exist under {blobPath}.", blobName, blobPath);
+                this.logger.LogError(rfex, "File {blobName} does not exist under {blobPath}.", path.BlobName, path.BlobPath);
                 return default;
             }
             catch (JsonException jex)
             {
                 this.logger.LogError(jex,
                     "Content of {blobName} under {blobPath} is not a valid json. Specify a different serializer or check blob contents.",
-                    blobName, blobPath);
+                    path.BlobName, path.BlobPath);
                 return default;
             }
             catch (Exception other)
             {
-                this.logger.LogError(other, "Failed to process content of {blobName} under {blobPath}.", blobName,
-                    blobPath);
+                this.logger.LogError(other, "Failed to process content of {blobName} under {blobPath}.", path.BlobName,
+                   path.BlobPath);
                 return default;
             }
         }
 
         /// <inheritdoc />
-        public Task<T> GetBlobContentAsync<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+        public Task<T> GetBlobContentAsync<T>(AdlsGen2Path path, Func<BinaryData, T> deserializer)
         {
-            var bc = GetBlobClient(blobPath, blobName);
+            var bc = GetBlobClient(path);
             try
             {
                 return bc.DownloadContentAsync().Map(result => deserializer(result.Value.Content));
             }
             catch (RequestFailedException rfex)
             {
-                this.logger.LogError(rfex, "File {blobName} does not exist under {blobPath}.", blobName, blobPath);
+                this.logger.LogError(rfex, "File {blobName} does not exist under {blobPath}.", path.BlobName, path.BlobPath);
                 return Task.FromResult(default(T));
             }
             catch (JsonException jex)
             {
                 this.logger.LogError(jex,
                     "Content of {blobName} under {blobPath} is not a valid json. Specify a different serializer or check blob contents.",
-                    blobName, blobPath);
+                    path.BlobName, path.BlobPath);
                 return Task.FromResult(default(T));
             }
             catch (Exception other)
             {
-                this.logger.LogError(other, "Failed to process content of {blobName} under {blobPath}.", blobName,
-                    blobPath);
+                this.logger.LogError(other, "Failed to process content of {blobName} under {blobPath}.", path.BlobName,
+                   path.BlobPath);
                 return Task.FromResult(default(T));
             }
         }
@@ -109,7 +109,7 @@ namespace Snd.Sdk.Storage.Azure
         /// <inheritdoc />
         public Stream StreamBlobContent(string blobPath, string blobName)
         {
-            var bc = GetBlobClient(blobPath, blobName);
+            var bc = GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path());
             return bc.OpenRead(new BlobOpenReadOptions(true));
         }
 
@@ -118,7 +118,7 @@ namespace Snd.Sdk.Storage.Azure
         {
             try
             {
-                return GetBlobClient(blobPath, blobName).GetProperties().Value.Metadata;
+                return GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path()).GetProperties().Value.Metadata;
             }
             catch (RequestFailedException ex)
             {
@@ -139,7 +139,7 @@ namespace Snd.Sdk.Storage.Azure
         {
             try
             {
-                return GetBlobClient(blobPath, blobName).GetPropertiesAsync().Map(props => props.Value.Metadata);
+                return GetBlobClient($"{blobPath}/{blobName}".AsAdlsGen2Path()).GetPropertiesAsync().Map(props => props.Value.Metadata);
             }
             catch (RequestFailedException ex)
             {
@@ -158,9 +158,9 @@ namespace Snd.Sdk.Storage.Azure
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
         // Requires an additional parameter ("validForSeconds", 123) to set SAS expiry date. Defaults to 1 minute if not provided.
-        public Uri GetBlobUri(string blobPath, string blobName, params ValueTuple<string, object>[] kwOptions)
+        public Uri GetBlobUri(AdlsGen2Path path, params ValueTuple<string, object>[] kwOptions)
         {
-            var blobClient = GetBlobClient(blobPath, blobName);
+            var blobClient = GetBlobClient(path);
             var sasDuration = kwOptions.Where(opt => opt.Item1 == "validForSeconds").ToList();
 
             return blobClient.GenerateSasUri(BlobSasPermissions.Read,
@@ -170,7 +170,7 @@ namespace Snd.Sdk.Storage.Azure
         private Pageable<BlobItem> ListBlobItems(string blobPath)
         {
             var containerClient = this.blobServiceClient.GetBlobContainerClient(blobPath.AsAdlsGen2Path().Container);
-            return containerClient.GetBlobs(prefix: blobPath.AsAdlsGen2Path().ObjectKey);
+            return containerClient.GetBlobs(prefix: blobPath.AsAdlsGen2Path().FullPath);
         }
 
         private StoredBlob MapBlobItem(BlobItem blobItem)
@@ -205,8 +205,8 @@ namespace Snd.Sdk.Storage.Azure
         /// <inheritdoc />
         public Task<bool> MoveBlob(string sourcePath, string sourceName, string targetPath, string targetBlobName)
         {
-            var sourceBlobClient = GetBlobClient(sourcePath, sourceName);
-            var targetBlobClient = GetBlobClient(targetPath, targetBlobName);
+            var sourceBlobClient = GetBlobClient($"{sourcePath}/{sourceName}".AsAdlsGen2Path());
+            var targetBlobClient = GetBlobClient($"{targetPath}/{targetBlobName}".AsAdlsGen2Path());
 
             return targetBlobClient
                 .SyncCopyFromUriAsync(sourceBlobClient.GenerateSasUri(BlobSasPermissions.Read,
@@ -224,23 +224,22 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<bool> RemoveBlob(string blobPath, string blobName)
+        public Task<bool> RemoveBlob(AdlsGen2Path path)
         {
-            var blobClient = GetBlobClient(blobPath, blobName);
+            var blobClient = GetBlobClient(path);
             return blobClient.DeleteIfExistsAsync().Map(v => v.Value);
         }
 
         /// <inheritdoc />
-        public Task<UploadedBlob> SaveTextAsBlob(string text, string blobPath, string blobName)
+        public Task<UploadedBlob> SaveTextAsBlob(string text, AdlsGen2Path path)
         {
-            var adlsPath = blobPath.AsAdlsGen2Path();
-            var containerClient = this.blobServiceClient.GetBlobContainerClient(adlsPath.Container);
+            var containerClient = this.blobServiceClient.GetBlobContainerClient(path.Container);
 
             return containerClient
-                .UploadBlobAsync(blobName: $"{adlsPath.ObjectKey}/{blobName}",
+                .UploadBlobAsync(blobName: path.FullPath,
                     content: new BinaryData(Encoding.UTF8.GetBytes(text))).Map(result => new UploadedBlob
                     {
-                        Name = $"{adlsPath.ObjectKey}/{blobName}",
+                        Name = path.FullPath,
                         ContentHash = Encoding.UTF8.GetString(result.Value.ContentHash),
                         LastModified = result.Value.LastModified
                     });
@@ -256,9 +255,9 @@ namespace Snd.Sdk.Storage.Azure
         [ExcludeFromCodeCoverage]
         protected virtual AppendBlobClient GetAppendBlobClient(string blobPath, string blobName)
         {
-            var adlsPath = blobPath.AsAdlsGen2Path();
+            var adlsPath = $"{blobPath}/{blobName}".AsAdlsGen2Path();
             var blobClient = this.blobServiceClient.GetBlobContainerClient(adlsPath.Container)
-                .GetAppendBlobClient($"{adlsPath.ObjectKey}/{blobName}");
+                .GetAppendBlobClient(adlsPath.FullPath);
 
             blobClient.CreateIfNotExists();
 
@@ -287,13 +286,13 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, string blobPath, string blobName, bool overwrite = false)
+        public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, AdlsGen2Path path, bool overwrite = false)
         {
-            var blobClient = GetBlobClient(blobPath, blobName);
+            var blobClient = GetBlobClient(path);
 
             return blobClient.UploadAsync(bytes, overwrite: overwrite).Map(result => new UploadedBlob
             {
-                Name = blobName,
+                Name = path.BlobName,
                 ContentHash = Convert.ToBase64String(result.Value.ContentHash),
                 LastModified = result.Value.LastModified
             });
