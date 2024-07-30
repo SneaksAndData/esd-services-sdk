@@ -23,7 +23,7 @@ public record AmazonS3StoragePath : IStoragePath
     public string ToHdfsPath() => $"s3a://{this.Bucket}/{this.ObjectKey}";
 
     /// <inheritdoc cref="IStoragePath"/>
-    public IStoragePath Join(string keyName)
+    public AmazonS3StoragePath Join(string keyName)
     {
         return this with
         {
