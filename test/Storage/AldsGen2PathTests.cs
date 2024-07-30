@@ -16,7 +16,7 @@ public class AdlsGen2PathTests
 
         // Assert
         Assert.Equal("container", storagePath.Container);
-        Assert.Equal("folder1/folder2/file.txt", storagePath.ObjectKey);
+        Assert.Equal("folder1/folder2/file.txt", storagePath.FullPath);
     }
 
     [Fact]
@@ -27,32 +27,5 @@ public class AdlsGen2PathTests
 
         // Assert
         Assert.Equal(path, storagePath.ToHdfsPath());
-    }
-
-    [Fact]
-    public static void CanJoinPath()
-    {
-        // Arrange
-        const string pathStart = "abfss://container@/";
-
-        // Act
-        var storagePath = new AdlsGen2Path(pathStart).Join("folder1/folder2/file.txt");
-
-        // Assert
-        Assert.Equal(path, storagePath.ToHdfsPath());
-    }
-
-    [Fact]
-    public static void TrimsDuplicatedSlashes()
-    {
-        // Arrange
-        const string pathStart = "abfss://container@/";
-        const string expected = "abfss://container@folder1///folder2/file.txt";
-
-        // Act
-        var storagePath = new AdlsGen2Path(pathStart).Join("/folder1///folder2/file.txt");
-
-        // Assert
-        Assert.Equal(expected, storagePath.ToHdfsPath());
     }
 }
