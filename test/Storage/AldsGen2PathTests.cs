@@ -18,7 +18,7 @@ public class AdlsGen2PathTests
         Assert.Equal("container", storagePath.Container);
         Assert.Equal("folder1/folder2/file.txt", storagePath.FullPath);
     }
-    
+
     [Fact]
     public static void CanSerializePath()
     {

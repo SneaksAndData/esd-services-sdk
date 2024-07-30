@@ -26,7 +26,7 @@ public record AdlsGen2Path : IStoragePath
     /// Returns the full path to the blob without the blob name.
     /// </summary>
     public string BlobPath { get; }
-    
+
     /// <summary>
     /// Returns the full path to the blob including the blob name without the container.
     /// </summary>
@@ -58,7 +58,7 @@ public record AdlsGen2Path : IStoragePath
         this.BlobPath = string.Join("/", path[..^1]);
         this.BlobName = path[^1];
     }
-    
+
     /// <summary>
     /// Creates a new instance of <see cref="AdlsGen2Path"/> from container and object key.
     /// </summary>

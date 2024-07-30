@@ -62,7 +62,7 @@ public class AmazonS3BlobStoragePathTests
         // Assert
         Assert.Equal(expected, storagePath.ToHdfsPath());
     }
-    
+
     [Theory]
     [InlineData("s3a://bucket-name/", "/folder1///folder2/file.txt")]
     [InlineData("s3a://bucket-name/", "folder1///folder2/file.txt")]

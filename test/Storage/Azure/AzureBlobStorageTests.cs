@@ -56,7 +56,7 @@ namespace Snd.Sdk.Tests.Storage.Azure
         public void GetBlobContent(string blobPath, string blobName, string content, bool asJson, BlobException? exception)
         {
             var adlsPath = new AdlsGen2Path(blobPath, blobName);
-            
+
             var mockCc = new Mock<BlobContainerClient>();
             var mockBc = new Mock<BlobClient>();
             var mockContent = Encoding.UTF8.GetBytes(content);
