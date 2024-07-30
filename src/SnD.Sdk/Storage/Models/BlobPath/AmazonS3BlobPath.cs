@@ -23,11 +23,11 @@ public record AmazonS3StoragePath : IStoragePath
     public string ToHdfsPath() => $"s3a://{this.Bucket}/{this.ObjectKey}";
 
     /// <inheritdoc cref="IStoragePath"/>
-    public AmazonS3StoragePath Join(string keyName)
+    public IStoragePath Join(string keyName)
     {
         return this with
         {
-            ObjectKey = string.IsNullOrEmpty(this.ObjectKey) ? keyName : $"{this.ObjectKey}/{keyName.TrimStart('/')}"
+            ObjectKey = string.IsNullOrEmpty(this.ObjectKey) ? keyName : $"{this.ObjectKey}/{keyName}"
         };
     }
 
@@ -49,18 +49,7 @@ public record AmazonS3StoragePath : IStoragePath
         }
 
         this.Bucket = match.Groups["bucket"].Value;
-        this.ObjectKey = match.Groups["key"].Value;
-    }
-    
-    /// <summary>
-    /// Creates a new instance of <see cref="AmazonS3StoragePath"/> from bucket and object key.
-    /// <param name="bucket">Bucket name</param>
-    /// <param name="objectKey">Object key</param>
-    /// </summary>
-    public AmazonS3StoragePath(string bucket, string objectKey)
-    {
-        this.Bucket = bucket;
-        this.ObjectKey = objectKey;
+        this.ObjectKey = match.Groups["key"].Value.Trim('/');
     }
 
     /// <summary>
@@ -69,5 +58,4 @@ public record AmazonS3StoragePath : IStoragePath
     /// <param name="hdfsPath">Path to check</param>
     /// <returns>True if path con be converted to <see cref="AmazonS3StoragePath"/></returns>
     public static bool IsAmazonS3Path(string hdfsPath) => new Regex(matchRegex).IsMatch(hdfsPath);
-    
 }
