@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Snd.Sdk.Storage.Models.Base;
 
@@ -19,6 +20,15 @@ public record AdlsGen2Path : IStoragePath
 
     /// <inheritdoc cref="IStoragePath"/>
     public string ObjectKey { get; init; }
+    
+    /// <inheritdoc cref="IStoragePath"/>
+    public string BlobName => string.IsNullOrEmpty(this.ObjectKey) ? "" : this.ObjectKey.Split("/").Last();
+
+    /// <inheritdoc cref="IStoragePath"/>
+    public string BlobPath => 
+        string.IsNullOrEmpty(this.ObjectKey)
+            ? $"abfss://{Container}@"
+            : $"abfss://{Container}@" + string.Join("/", this.ObjectKey.Split("/").ToArray()[..^1]);
 
     /// <inheritdoc cref="IStoragePath"/>
     public IStoragePath Join(string keyName)
@@ -47,6 +57,21 @@ public record AdlsGen2Path : IStoragePath
         {
             throw new ArgumentException(
                 $"An {nameof(AdlsGen2Path)} must be in the format abfss://container@path/to/key, but was: {hdfsPath}");
+        }
+
+        Container = match.Groups["container"].Value;
+        ObjectKey = match.Groups["key"].Value;
+    }
+    
+    public AdlsGen2Path(string blobPath, string blobName)
+    {
+        var regex = new Regex(matchRegex);
+        var match = regex.Match($"{blobPath}/{blobName}");
+
+        if (!match.Success)
+        {
+            throw new ArgumentException(
+                $"An {nameof(AdlsGen2Path)} must be in the format abfss://container@path/to/key, but was: {blobPath}, {blobName}");
         }
 
         Container = match.Groups["container"].Value;

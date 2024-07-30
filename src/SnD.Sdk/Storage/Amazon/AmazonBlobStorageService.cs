@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Snd.Sdk.Helpers;
 using Snd.Sdk.Tasks;
 using Snd.Sdk.Storage.Base;
-using SnD.Sdk.Storage.Base.Typed;
 using Snd.Sdk.Storage.Models;
 using Snd.Sdk.Storage.Models.BlobPath;
 
@@ -22,8 +21,8 @@ namespace Snd.Sdk.Storage.Amazon;
 /// Blob Service implementation for S3-compatible object storage.
 /// Blob path for this service should be in format s3://bucket-name/path
 /// </summary>
-public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListService, IBlobStorageReader,
-    ITypedBlobStorageReader<AmazonS3StoragePath>, ITypedBlobStorageWriter<AmazonS3StoragePath>
+public class AmazonBlobStorageService : IBlobStorageWriter<AmazonS3StoragePath>,
+    IBlobStorageListService, IBlobStorageReader<AmazonS3StoragePath>
 {
     private readonly IAmazonS3 client;
     private readonly ILogger<AmazonBlobStorageService> logger;
@@ -41,40 +40,53 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
     }
 
     /// <inheritdoc/>
-    public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, string blobPath, string blobName, bool overwrite = false)
+    public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, AmazonS3StoragePath blobPath, bool overwrite = false)
     {
-        return this.SaveBytesAsBlob(bytes, $"{blobPath}/{blobName}".AsAmazonS3Path(), overwrite);
+        var ms = new MemoryStream();
+        ms.Write(bytes);
+        var request = new PutObjectRequest
+        {
+            BucketName = blobPath.Bucket,
+            Key = blobPath.ObjectKey,
+            InputStream = ms,
+            AutoCloseStream = true
+        };
+        return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
+        {
+            Name = blobPath.ObjectKey,
+            ContentHash = result.ChecksumSHA256,
+            LastModified = DateTimeOffset.UtcNow
+        }, exception =>
+        {
+            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}",
+                blobPath.ObjectKey,
+                blobPath.Bucket);
+            return default;
+        });
     }
 
     /// <inheritdoc/>
-    public Task<UploadedBlob> SaveTextAsBlob(string text, string blobPath, string blobName)
+    public Task<UploadedBlob> SaveTextAsBlob(string text, AmazonS3StoragePath blobPath)
     {
-        var path = blobPath.AsAmazonS3Path();
         var request = new PutObjectRequest
         {
-            BucketName = path.Bucket,
-            Key = path.Join(blobName).ObjectKey,
+            BucketName = blobPath.Bucket,
+            Key = blobPath.ObjectKey,
             ContentBody = text,
             CalculateContentMD5Header = true,
             ChecksumAlgorithm = ChecksumAlgorithm.SHA256
         };
         return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
         {
-            Name = blobName,
+            Name = blobPath.ToHdfsPath(),
             ContentHash = result.ChecksumSHA256,
             LastModified = DateTimeOffset.UtcNow
         }, exception =>
         {
-            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}", blobName, path.Bucket);
+            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}", blobPath.ObjectKey,
+                blobPath.Bucket);
             return default;
         });
-    }
-
-    /// <inheritdoc/>
-    public Task<bool> RemoveBlob(string blobPath, string blobName)
-    {
-        var path = $"{blobPath}/{blobName}".AsAmazonS3Path();
-        return this.RemoveBlob(path);
     }
 
     /// <inheritdoc/>
@@ -127,16 +139,9 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
 
     /// <inheritdoc/>
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
-    public Task<T> GetBlobContentAsync<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+    public T GetBlobContent<T>(AmazonS3StoragePath blobPath, Func<BinaryData, T> deserializer)
     {
-        return this.GetBlobContentAsync($"{blobPath}/{blobName}".AsAmazonS3Path(), deserializer);
-    }
-
-    /// <inheritdoc/>
-    [ExcludeFromCodeCoverage(Justification = "Trivial")]
-    public T GetBlobContent<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
-    {
-        return this.GetBlobContentAsync(blobPath, blobName, deserializer).GetAwaiter().GetResult();
+        return this.GetBlobContentAsync(blobPath, deserializer).GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
@@ -154,29 +159,6 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
             .GetAwaiter()
             .GetResult()
             .ResponseStream;
-    }
-
-    [ExcludeFromCodeCoverage(Justification = "Trivial")]
-    private static StoredBlob MapToStoredBlob(S3Object arg)
-    {
-        return new StoredBlob
-        {
-            Name = arg.Key,
-            LastModified = arg.LastModified,
-            ContentLength = arg.Size,
-            ContentHash = arg.ETag
-        };
-    }
-
-    [ExcludeFromCodeCoverage(Justification = "Trivial")]
-    private IAsyncEnumerable<S3Object> GetObjectsPaginator(AmazonS3StoragePath path)
-    {
-        var paginator = this.client.Paginators.ListObjectsV2(new ListObjectsV2Request
-        {
-            BucketName = path.Bucket,
-            Prefix = path.ObjectKey
-        });
-        return paginator.S3Objects;
     }
 
     /// <inheritdoc/>
@@ -203,32 +185,6 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
     }
 
     /// <inheritdoc/>
-    public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, AmazonS3StoragePath blobPath, bool overwrite = false)
-    {
-        var ms = new MemoryStream();
-        ms.Write(bytes);
-        var request = new PutObjectRequest
-        {
-            BucketName = blobPath.Bucket,
-            Key = blobPath.ObjectKey,
-            InputStream = ms,
-            AutoCloseStream = true
-        };
-        return this.client.PutObjectAsync(request).TryMap(result => new UploadedBlob
-        {
-            Name = blobPath.ObjectKey,
-            ContentHash = result.ChecksumSHA256,
-            LastModified = DateTimeOffset.UtcNow
-        }, exception =>
-        {
-            this.logger.LogError(exception, "Could not upload blob {blobName} to {bucket}",
-                blobPath.ObjectKey,
-                blobPath.Bucket);
-            return default;
-        });
-    }
-
-    /// <inheritdoc/>
     public Task<bool> RemoveBlob(AmazonS3StoragePath blobPath)
     {
         var request = new DeleteObjectRequest
@@ -238,10 +194,33 @@ public class AmazonBlobStorageService : IBlobStorageWriter, IBlobStorageListServ
         };
         return this.client
             .DeleteObjectAsync(request)
-            .TryMap(success => true, exception =>
+            .TryMap(_ => true, _ =>
             {
                 this.logger.LogError("Failed to delete blob {blobName} from {bucket}", blobPath.ObjectKey, blobPath.Bucket);
                 return false;
             });
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    private static StoredBlob MapToStoredBlob(S3Object arg)
+    {
+        return new StoredBlob
+        {
+            Name = arg.Key,
+            LastModified = arg.LastModified,
+            ContentLength = arg.Size,
+            ContentHash = arg.ETag
+        };
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Trivial")]
+    private IAsyncEnumerable<S3Object> GetObjectsPaginator(AmazonS3StoragePath path)
+    {
+        var paginator = this.client.Paginators.ListObjectsV2(new ListObjectsV2Request
+        {
+            BucketName = path.Bucket,
+            Prefix = path.ObjectKey
+        });
+        return paginator.S3Objects;
     }
 }

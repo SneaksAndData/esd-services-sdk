@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Snd.Sdk.Helpers;
 using Snd.Sdk.Storage.Base;
 using Snd.Sdk.Storage.Models;
+using Snd.Sdk.Storage.Models.BlobPath;
 
 namespace Snd.Sdk.Storage.Azure
 {
@@ -26,7 +27,7 @@ namespace Snd.Sdk.Storage.Azure
     /// Blob Service implementation for Azure.
     /// Blob path for this service should be in format container@my/blob/path
     /// </summary>
-    public class AzureBlobStorageService : IBlobStorageService
+    public class AzureBlobStorageService : IBlobStorageService<AdlsGen2Path>
     {
         private readonly BlobServiceClient blobServiceClient;
         private readonly ILogger<AzureBlobStorageService> logger;
@@ -50,8 +51,10 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public T GetBlobContent<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+        public T GetBlobContent<T>(AdlsGen2Path path, Func<BinaryData, T> deserializer)
         {
+            var blobPath = path.BlobPath;
+            var blobName = path.BlobName;
             var bc = GetBlobClient(blobPath, blobName);
             try
             {
@@ -79,8 +82,10 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<T> GetBlobContentAsync<T>(string blobPath, string blobName, Func<BinaryData, T> deserializer)
+        public Task<T> GetBlobContentAsync<T>(AdlsGen2Path adlsGen2Path, Func<BinaryData, T> deserializer)
         {
+            var blobPath = adlsGen2Path.BlobPath;
+            var blobName = adlsGen2Path.BlobName;
             var bc = GetBlobClient(blobPath, blobName);
             try
             {
@@ -224,16 +229,19 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<bool> RemoveBlob(string blobPath, string blobName)
+        public Task<bool> RemoveBlob(AdlsGen2Path path)
         {
+            var blobPath = path.BlobPath;
+            var blobName = path.BlobName;
             var blobClient = GetBlobClient(blobPath, blobName);
             return blobClient.DeleteIfExistsAsync().Map(v => v.Value);
         }
 
         /// <inheritdoc />
-        public Task<UploadedBlob> SaveTextAsBlob(string text, string blobPath, string blobName)
+        public Task<UploadedBlob> SaveTextAsBlob(string text, AdlsGen2Path path)
         {
-            var adlsPath = blobPath.AsAdlsGen2Path();
+            var blobName = path.BlobName;
+            var adlsPath = path;
             var containerClient = this.blobServiceClient.GetBlobContainerClient(adlsPath.Container);
 
             return containerClient
@@ -287,8 +295,10 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, string blobPath, string blobName, bool overwrite = false)
+        public Task<UploadedBlob> SaveBytesAsBlob(BinaryData bytes, AdlsGen2Path path, bool overwrite = false)
         {
+            var blobPath = path.BlobPath;
+            var blobName = path.BlobName;
             var blobClient = GetBlobClient(blobPath, blobName);
 
             return blobClient.UploadAsync(bytes, overwrite: overwrite).Map(result => new UploadedBlob

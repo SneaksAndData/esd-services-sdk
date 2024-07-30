@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Amazon.S3;
 using Snd.Sdk.Storage.Amazon;
 using Snd.Sdk.Storage.Base;
+using Snd.Sdk.Storage.Models.BlobPath;
 using Snd.Sdk.Storage.Providers.Configurations;
 
 namespace Snd.Sdk.Storage.Providers
@@ -34,7 +35,7 @@ namespace Snd.Sdk.Storage.Providers
             };
 
             services.AddSingleton<IAmazonS3>(new AmazonS3Client(awsConfig.AccessKey, awsConfig.SecretKey, clientConfig));
-            return services.AddSingleton<IBlobStorageWriter, AmazonBlobStorageService>();
+            return services.AddSingleton<IBlobStorageWriter<AmazonS3StoragePath>, AmazonBlobStorageService>();
         }
     }
 }
