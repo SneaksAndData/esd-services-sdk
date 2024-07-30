@@ -147,7 +147,7 @@ public class AmazonBlobStorageService : IBlobStorageWriter<AmazonS3StoragePath>,
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
     public Stream StreamBlobContent(string blobPath, string blobName)
     {
-        var path = $"{blobName}/{blobPath}".AsAmazonS3Path();
+        var path = $"{blobPath}/{blobName}".AsAmazonS3Path();
         var request = new GetObjectRequest
         {
             BucketName = path.Bucket,

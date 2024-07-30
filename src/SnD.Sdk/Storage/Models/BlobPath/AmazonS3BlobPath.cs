@@ -23,7 +23,7 @@ public record AmazonS3StoragePath : IStoragePath
     public string ToHdfsPath() => $"s3a://{this.Bucket}/{this.ObjectKey}";
 
     /// <inheritdoc cref="IStoragePath"/>
-    public IStoragePath Join(string keyName)
+    public AmazonS3StoragePath Join(string keyName)
     {
         return this with
         {
@@ -69,4 +69,5 @@ public record AmazonS3StoragePath : IStoragePath
     /// <param name="hdfsPath">Path to check</param>
     /// <returns>True if path con be converted to <see cref="AmazonS3StoragePath"/></returns>
     public static bool IsAmazonS3Path(string hdfsPath) => new Regex(matchRegex).IsMatch(hdfsPath);
+    
 }
