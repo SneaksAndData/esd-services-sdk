@@ -27,7 +27,7 @@ public record AmazonS3StoragePath : IStoragePath
     {
         return this with
         {
-            ObjectKey = $"{this.ObjectKey}/{keyName.Trim('/')}"
+            ObjectKey = string.IsNullOrEmpty(this.ObjectKey) ? keyName : $"{this.ObjectKey}/{keyName}"
         };
     }
 
@@ -49,7 +49,7 @@ public record AmazonS3StoragePath : IStoragePath
         }
 
         this.Bucket = match.Groups["bucket"].Value;
-        this.ObjectKey = match.Groups["key"].Value;
+        this.ObjectKey = match.Groups["key"].Value.Trim('/');
     }
 
     /// <summary>

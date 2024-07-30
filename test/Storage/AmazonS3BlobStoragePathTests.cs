@@ -48,8 +48,8 @@ public class AmazonS3BlobStoragePathTests
 
     [Theory]
     [InlineData("s3a://bucket-name/", "/folder1///folder2/file.txt", "s3a://bucket-name//folder1///folder2/file.txt")]
-    [InlineData("s3a://bucket-name/", "folder1///folder2/file.txt", "s3a://bucket-name//folder1///folder2/file.txt")]
-    [InlineData("s3a://bucket-name", "folder1///folder2/file.txt", "s3a://bucket-name//folder1///folder2/file.txt")]
+    [InlineData("s3a://bucket-name/", "folder1///folder2/file.txt", "s3a://bucket-name/folder1///folder2/file.txt")]
+    [InlineData("s3a://bucket-name", "folder1///folder2/file.txt", "s3a://bucket-name/folder1///folder2/file.txt")]
     [InlineData("s3a://bucket-name", "/folder1///folder2/file.txt", "s3a://bucket-name//folder1///folder2/file.txt")]
     public static void TrimsDuplicatedSlashes(string bucketName, string objectKey, string expected)
     {
