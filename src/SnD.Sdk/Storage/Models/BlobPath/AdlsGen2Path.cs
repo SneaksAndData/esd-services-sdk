@@ -10,37 +10,30 @@ namespace Snd.Sdk.Storage.Models.BlobPath;
 /// </summary>
 public record AdlsGen2Path : IStoragePath
 {
-    private const string matchRegex = @"^(abfss://)?(?<container>[^@:/]+)@(?<key>.+)$";
+    private const string MATCH_REGEX = @"^(abfss://)?(?<container>[^@:/]+)@(?<key>.+)$";
 
     /// <summary>
     /// Blob container name
     /// </summary>
     public string Container { get; init; }
 
+    /// <summary>
+    /// Returns the blob name;
+    /// </summary>
+    public string BlobName { get; }
 
-    /// <inheritdoc cref="IStoragePath"/>
-    public string ObjectKey { get; init; }
+    /// <summary>
+    /// Returns the full path to the blob without the blob name.
+    /// </summary>
+    public string BlobPath { get; }
     
-    /// <inheritdoc cref="IStoragePath"/>
-    public string BlobName => string.IsNullOrEmpty(this.ObjectKey) ? "" : this.ObjectKey.Split("/").Last();
-
-    /// <inheritdoc cref="IStoragePath"/>
-    public string BlobPath => 
-        string.IsNullOrEmpty(this.ObjectKey)
-            ? $"abfss://{Container}@"
-            : $"abfss://{Container}@" + string.Join("/", this.ObjectKey.Split("/").ToArray()[..^1]);
-
-    /// <inheritdoc cref="IStoragePath"/>
-    public IStoragePath Join(string keyName)
-    {
-        return this with
-        {
-            ObjectKey = $"{this.ObjectKey.Trim('/')}/{keyName.Trim('/')}"
-        };
-    }
+    /// <summary>
+    /// Returns the full path to the blob including the blob name without the container.
+    /// </summary>
+    public string FullPath => $"{this.BlobPath}/{this.BlobName}";
 
     /// <inheritdoc cref="IStoragePath.ToHdfsPath"/>
-    public string ToHdfsPath() => $"abfss://{this.Container}@{this.ObjectKey.Trim('/')}";
+    public string ToHdfsPath() => $"abfss://{this.Container}@{this.BlobPath.Trim('/')}/{this.BlobName.Trim('/')}";
 
     /// <summary>
     /// Converts HDFS path to an instance of <see cref="AdlsGen2Path"/>.
@@ -50,7 +43,7 @@ public record AdlsGen2Path : IStoragePath
     /// <exception cref="ArgumentException">If path does not match the format</exception>
     public AdlsGen2Path(string hdfsPath)
     {
-        var regex = new Regex(matchRegex);
+        var regex = new Regex(MATCH_REGEX);
         var match = regex.Match(hdfsPath);
 
         if (!match.Success)
@@ -59,14 +52,23 @@ public record AdlsGen2Path : IStoragePath
                 $"An {nameof(AdlsGen2Path)} must be in the format abfss://container@path/to/key, but was: {hdfsPath}");
         }
 
-        Container = match.Groups["container"].Value;
-        ObjectKey = match.Groups["key"].Value;
+        this.Container = match.Groups["container"].Value;
+
+        var path = match.Groups["key"].Value.Split('/');
+        this.BlobPath = string.Join("/", path[..^1]);
+        this.BlobName = path[^1];
     }
     
+    /// <summary>
+    /// Creates a new instance of <see cref="AdlsGen2Path"/> from container and object key.
+    /// </summary>
+    /// <param name="blobPath">HDFS path in format abfss://container@/path</param>
+    /// <param name="blobName">Blob name as string</param>
+    /// <exception cref="ArgumentException"></exception>
     public AdlsGen2Path(string blobPath, string blobName)
     {
-        var regex = new Regex(matchRegex);
-        var match = regex.Match($"{blobPath}/{blobName}");
+        var regex = new Regex(MATCH_REGEX);
+        var match = regex.Match(blobPath);
 
         if (!match.Success)
         {
@@ -74,8 +76,9 @@ public record AdlsGen2Path : IStoragePath
                 $"An {nameof(AdlsGen2Path)} must be in the format abfss://container@path/to/key, but was: {blobPath}, {blobName}");
         }
 
-        Container = match.Groups["container"].Value;
-        ObjectKey = match.Groups["key"].Value;
+        this.Container = match.Groups["container"].Value;
+        this.BlobPath = match.Groups["key"].Value;
+        this.BlobName = blobName;
     }
 
     /// <summary>
@@ -83,5 +86,5 @@ public record AdlsGen2Path : IStoragePath
     /// </summary>
     /// <param name="hdfsPath">Path to check</param>
     /// <returns>True if path con be converted to <see cref="AdlsGen2Path"/></returns>
-    public static bool IsAdlsGen2Path(string hdfsPath) => new Regex(matchRegex).IsMatch(hdfsPath);
+    public static bool IsAdlsGen2Path(string hdfsPath) => new Regex(MATCH_REGEX).IsMatch(hdfsPath);
 }

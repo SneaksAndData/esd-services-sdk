@@ -91,15 +91,14 @@ public class AmazonBlobStorageService : IBlobStorageWriter<AmazonS3StoragePath>,
 
     /// <inheritdoc/>
     [ExcludeFromCodeCoverage(Justification = "Trivial")]
-    public Uri GetBlobUri(string blobPath, string blobName, params (string, object)[] kwOptions)
+    public Uri GetBlobUri(AmazonS3StoragePath path, params (string, object)[] kwOptions)
     {
-        var path = blobPath.AsAmazonS3Path();
         var signingOptions = kwOptions.ToDictionary(opt => opt.Item1, opt => opt.Item2);
         var duration = (double)signingOptions.GetValueOrDefault("validForSeconds", DEFAULT_SIGNED_URL_VALIDITY_SECONDS);
         var request = new GetPreSignedUrlRequest
         {
             BucketName = path.Bucket,
-            Key = path.Join(blobName).ObjectKey,
+            Key = path.ObjectKey,
             Expires = DateTime.UtcNow.AddSeconds(duration),
             Protocol = Protocol.HTTPS,
             Verb = HttpVerb.GET,
