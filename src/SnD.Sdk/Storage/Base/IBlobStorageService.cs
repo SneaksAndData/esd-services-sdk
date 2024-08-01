@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Snd.Sdk.Storage.Base.Streaming;
+using Snd.Sdk.Storage.Models.Base;
 
 namespace Snd.Sdk.Storage.Base;
 
 /// <summary>
 /// Binary object storage abstraction.
 /// </summary>
-public interface IBlobStorageService : IBlobStorageReader,
-    IBlobStorageWriter,
+public interface IBlobStorageService<in TBlobPath> : IBlobStorageReader<TBlobPath>,
+    IBlobStorageWriter<TBlobPath>,
     IBlobStreamWriter,
-    IBlobStorageListService
+    IBlobStorageListService where TBlobPath : IStoragePath
 {
     /// <summary>
     /// Reads blob metadata for the specified blob.

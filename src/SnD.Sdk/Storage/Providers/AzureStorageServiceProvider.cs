@@ -5,12 +5,9 @@ using Azure.Storage.Files.Shares;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
-using Akka.Actor;
-using Akka.Hosting;
-using Akka.Streams;
-using Snd.Sdk.Storage.Models.BlobPath;
 using Snd.Sdk.Storage.Azure;
 using Snd.Sdk.Storage.Base;
+using Snd.Sdk.Storage.Models.BlobPath;
 using Snd.Sdk.Storage.Providers.Configurations;
 
 namespace Snd.Sdk.Storage.Providers
@@ -82,7 +79,7 @@ namespace Snd.Sdk.Storage.Providers
                 return new BlobServiceClient(azConfig.StorageAccountConnectionString, clientOptions);
             });
 
-            return services.AddSingleton<IBlobStorageService, AzureBlobStorageService>();
+            return services.AddSingleton<IBlobStorageService<AdlsGen2Path>, AzureBlobStorageService>();
         }
 
         /// <summary>
