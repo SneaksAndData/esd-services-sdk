@@ -722,13 +722,14 @@ namespace Snd.Sdk.Kubernetes
         {
             var policy = Policy
                 .Handle<HttpRequestException>(ex => ex.InnerException is IOException)
+                .Or<HttpOperationException>(ex => ex.Response.StatusCode is HttpStatusCode.InternalServerError or HttpStatusCode.ServiceUnavailable)
                 .WaitAndRetryAsync(
                     retryCount: 3,
                     sleepDurationProvider: (_, _, _) => TimeSpan.FromSeconds(0.5d),
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "Transport level error occured when connecting to the API Server. Will retry in {retryInSeconds} seconds",
+                            "Server-side or transport error occured when calling the API Server. Will retry in {retryInSeconds} seconds",
                             span.TotalSeconds);
                         return Task.CompletedTask;
                     });
