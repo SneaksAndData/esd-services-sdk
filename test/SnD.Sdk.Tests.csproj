@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 	<RootNamespace>SnD.Sdk.Tests</RootNamespace>
 
     <IsPackable>false</IsPackable>
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\SnD.Sdk.csproj" />
+    <ProjectReference Include="..\src\SnD.Sdk\SnD.Sdk.csproj" />
   </ItemGroup>
 
   <ItemGroup>

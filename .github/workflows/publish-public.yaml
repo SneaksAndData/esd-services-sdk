@@ -19,12 +19,14 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3.0.3
         with:
-          dotnet-version: 6.0.x          
+          dotnet-version: 6.0.x
       - name: Set Package Version
         run: |
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
-          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk/SnD.Sdk.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Storage.Minio/SnD.Sdk.Storage.Minio.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Extensions.Environment/SnD.Sdk.Extensions.Environment.csproj
       - name: Import Secrets
         uses: hashicorp/vault-action@v2.7.3
         with:
@@ -34,8 +36,29 @@ jobs:
           secrets: |
             /secret/data/common/code_signing_certificates certificate_p12 | CERT ;
             /secret/data/common/nuget_publish api_key | API_KEY ;
+
+      - name: Build NuGet for SnD.Sdk.Extensions.Environment
+        working-directory: ./src/SnD.Sdk.Extensions.Environment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          dotnet pack --configuration Release SnD.Sdk.Extensions.Environment.csproj
+
+          echo "$CERT" | base64 --decode > cert.p12
+
+          dotnet nuget sign "bin/Release/SnD.Sdk.Extensions.Environment.$version.nupkg"  \
+            --certificate-path cert.p12 \
+            --timestamper http://timestamp.digicert.com
+
+          dotnet nuget push "bin/Release/SnD.Sdk.Extensions.Environment.$version.nupkg" --api-key "$API_KEY" \
+            --source  https://api.nuget.org/v3/index.json
+
+          rm cert.p12
+
       - name: Build NuGet for SnD.Sdk
-        working-directory: ./src
+        working-directory: ./src/SnD.Sdk
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -50,6 +73,25 @@ jobs:
             --timestamper http://timestamp.digicert.com
           
           dotnet nuget push "bin/Release/SnD.Sdk.$version.nupkg" --api-key "$API_KEY" \
+            --source  https://api.nuget.org/v3/index.json
+          
+          rm cert.p12
+      - name: Build NuGet for SnD.Sdk.Storage.Minio
+        working-directory: ./src/SnD.Sdk.Storage.Minio
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          dotnet pack --configuration Release SnD.Sdk.Storage.Minio.csproj
+          
+          echo "$CERT" | base64 --decode > cert.p12
+          
+          dotnet nuget sign "bin/Release/SnD.Sdk.Storage.Minio.$version.nupkg"  \
+            --certificate-path cert.p12 \
+            --timestamper http://timestamp.digicert.com
+          
+          dotnet nuget push "bin/Release/SnD.Sdk.Storage.Minio.$version.nupkg" --api-key "$API_KEY" \
             --source  https://api.nuget.org/v3/index.json
           
           rm cert.p12
