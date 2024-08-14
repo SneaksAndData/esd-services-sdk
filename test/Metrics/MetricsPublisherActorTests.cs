@@ -35,10 +35,9 @@ public class MetricsActorTests : TestKit
         this.metricsServiceMock.Setup(ms => ms.Count(It.IsAny<string>(),
             It.IsAny<int>(),
             It.IsAny<SortedDictionary<string, string>>())).Callback(() => this.tcs.TrySetResult());
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
-                TimeSpan.Zero,
-                TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, null)),
-            nameof(MetricsPublisherActor));
+        var subject = this.Sys.StartMetricsPublisher(() => new TestMetricsPublisherActor(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, null));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -63,11 +62,9 @@ public class MetricsActorTests : TestKit
             It.IsAny<int>(),
             It.IsAny<SortedDictionary<string, string>>())).Throws(new Exception("Test exception"));
 
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
-                TimeSpan.Zero,
-                TimeSpan.FromSeconds(10),
-                this.metricsServiceMock.Object, null)),
-            nameof(MetricsPublisherActor));
+        var subject = this.Sys.StartMetricsPublisher(() => new TestMetricsPublisherActor(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, null));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -85,12 +82,9 @@ public class MetricsActorTests : TestKit
     public async Task TestRemoveMetricsMessage()
     {
         // Arrange
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
-                TimeSpan.Zero,
-                TimeSpan.MaxValue,
-                this.metricsServiceMock.Object,
-                this.tcs)),
-            nameof(TestMetricsPublisherActor));
+        var subject = this.Sys.StartMetricsPublisher(() => new TestMetricsPublisherActor(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, this.tcs));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -110,12 +104,9 @@ public class MetricsActorTests : TestKit
     public async Task TestRemoveNonExisingMetric()
     {
         // Arrange
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
-                TimeSpan.Zero,
-                TimeSpan.MaxValue,
-                this.metricsServiceMock.Object,
-                this.tcs)),
-            nameof(TestMetricsPublisherActor));
+        var subject = this.Sys.StartMetricsPublisher(() => new TestMetricsPublisherActor(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, this.tcs));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
@@ -135,12 +126,9 @@ public class MetricsActorTests : TestKit
     public async Task TestBrokenMessage()
     {
         // Arrange
-        var subject = this.Sys.ActorOf(Props.Create(() => new TestMetricsPublisherActor(
-                TimeSpan.Zero,
-                TimeSpan.MaxValue,
-                this.metricsServiceMock.Object,
-                this.tcs)),
-            nameof(TestMetricsPublisherActor));
+        var subject = this.Sys.StartMetricsPublisher(() => new TestMetricsPublisherActor(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(10), this.metricsServiceMock.Object, this.tcs));
 
         // Act
         subject.Tell(new AddMetricMessage("test", "test", new()));
