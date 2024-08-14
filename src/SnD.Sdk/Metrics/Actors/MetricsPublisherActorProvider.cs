@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using Akka.Actor;
 
 namespace SnD.Sdk.Metrics.Actors;
@@ -17,9 +18,11 @@ public static class MetricsPublisherActorProvider
     /// In this case the name of the class <see cref="MetricsPublisherActor"/> will be used.</param>
     /// <typeparam name="TActorType">The concrete class name for the actor.</typeparam>
     /// <returns>Actor reference.</returns>
-    public static IActorRef StartMetricsPublisher<TActorType>(this IActorRefFactory actorSystem, Func<TActorType> factory, string name = null)
+    public static IActorRef StartMetricsPublisher<TActorType>(this IActorRefFactory actorSystem,
+        Expression<Func<TActorType>> factory,
+        string name = null)
         where TActorType: MetricsPublisherActor
     {
-        return actorSystem.ActorOf(Props.Create(() => factory()), name ?? nameof(MetricsPublisherActor));
+        return actorSystem.ActorOf(Props.Create(factory), name ?? nameof(MetricsPublisherActor));
     }
 }
