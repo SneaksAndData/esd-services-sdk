@@ -87,7 +87,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
 
     private void HandleAddMetricMessage(AddMetricMessage m)
     {
-        this.Log.Debug("Adding stream class metrics for {streamKindRef}", m.Key);
+        this.Log.Debug("Adding metrics for {key}", m.Key);
         if (m.MetricTags == null || m.MetricName == null || m.Key == null)
         {
             this.Log.Warning("Skip malformed {messageName} for {key} with value: {@message}",
@@ -103,7 +103,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
     {
         if (!this.metrics.Remove(m.Key))
         {
-            this.Log.Warning("Stream class {streamKindRef} not found in metrics collection", m.Key);
+            this.Log.Warning("Key {key} not found in metrics collection", m.Key);
         }
     }
 
@@ -118,7 +118,7 @@ public abstract class MetricsPublisherActor : ReceiveActor, IWithTimers
             }
             catch (Exception exception)
             {
-                this.Log.Error(exception, "Failed to publish metrics for {streamKindRef}",
+                this.Log.Error(exception, "Failed to publish metrics for {key}",
                     metric.MetricName);
             }
         }
