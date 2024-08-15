@@ -21,7 +21,7 @@ public static class MetricsPublisherActorProvider
     public static IActorRef StartMetricsPublisher<TActorType>(this IActorRefFactory actorSystem,
         Expression<Func<TActorType>> factory,
         string name = null)
-        where TActorType: MetricsPublisherActor
+        where TActorType : MetricsPublisherActor
     {
         return actorSystem.ActorOf(Props.Create(factory), name ?? nameof(MetricsPublisherActor));
     }
