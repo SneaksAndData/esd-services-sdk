@@ -10,6 +10,8 @@ using Akka.Util;
 using Cassandra;
 using Cassandra.Data.Linq;
 using Cassandra.Mapping;
+using Polly;
+using Polly.RateLimit;
 using Snd.Sdk.Storage.Base;
 
 namespace Snd.Sdk.Storage.Cql
@@ -159,7 +161,62 @@ namespace Snd.Sdk.Storage.Cql
         }
 
         /// <inheritdoc />
-        public Task<bool> UpsertAtomicPair<TFirst, TSecond>(TFirst first, TSecond second, int? ttlSeconds = null, bool insertNulls = false)
+        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
+            bool insertNulls = false, string rateLimit = "1000 per second")
+        {
+            var rateLimiter = CreateRateLimiter(rateLimit);
+            var totalBatches = (entities.Count + batchSize - 1) / batchSize;
+            for (int i = 0; i < totalBatches; i++)
+            {
+                var batch = this.session.CreateBatch(BatchType.Unlogged);
+                var start = i * batchSize;
+                var end = Math.Min(start + batchSize, entities.Count);
+
+                for (var j = start; j < end; j++)
+                {
+                    batch.Append(GetInsertCommand(entities[j], ttlSeconds, insertNulls));
+                }
+
+                rateLimiter.ExecuteAsync((() =>
+                {
+                    return batch.ExecuteAsync().TryMap((() => true), exception =>
+                    {
+                        this.logger.LogError(exception, "Failed to insert batch at index {BatchIndex}", i);
+                        return false;
+                    });
+                }));
+            }
+            return Task.FromResult(true);
+        }
+
+        private AsyncRateLimitPolicy CreateRateLimiter(string rateLimit)
+        {
+            var rateParts = rateLimit.Split(' ');
+            var limit = int.Parse(rateParts[0]);
+            var perUnit = rateParts[2];
+
+            TimeSpan timeSpan;
+            switch (perUnit.ToLower())
+            {
+                case "second":
+                    timeSpan = TimeSpan.FromSeconds(1);
+                    break;
+                case "minute":
+                    timeSpan = TimeSpan.FromMinutes(1);
+                    break;
+                case "hour":
+                    timeSpan = TimeSpan.FromHours(1);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid rate limit unit.");
+            }
+
+            return Policy.RateLimitAsync(limit, timeSpan);
+        }
+
+        /// <inheritdoc />
+        public Task<bool> UpsertAtomicPair<TFirst, TSecond>(TFirst first, TSecond second, int? ttlSeconds = null,
+            bool insertNulls = false)
         {
             var loggedBatch = this.session.CreateBatch(BatchType.Logged);
 

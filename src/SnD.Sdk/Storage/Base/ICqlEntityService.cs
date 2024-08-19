@@ -31,6 +31,18 @@ namespace Snd.Sdk.Storage.Base
         Task<bool> UpsertEntity<T>(T entity, int? ttlSeconds = null, bool insertNulls = false);
 
         /// <summary>
+        /// Inserts or updates a batch of entities in the table with optional TTL and null field handling.
+        /// </summary>
+        /// <typeparam name="T">The type of the entities to be upserted.</typeparam>
+        /// <param name="entities">A list of entities to be upserted.</param>
+        /// <param name="batchSize">The number of entities to be processed in each batch. Default is 1000.</param>
+        /// <param name="ttlSeconds">Optional time to live for the entities in seconds. Default is null.</param>
+        /// <param name="insertNulls">Specifies whether to merge non-supplied fields. Default is false.</param>
+        /// <returns></returns>
+        Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
+            bool insertNulls = false, string rateLimit = "1000 per second");
+
+        /// <summary>
         /// Creates or updates a pair of entities atomically with optional TTL.
         /// </summary>
         /// <param name="first">First entity.</param>
