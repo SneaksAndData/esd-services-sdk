@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Akka;
 using Akka.Streams.Dsl;
 using System.Threading.Tasks;
+using Cassandra;
 using Cassandra.Data.Linq;
 using Cassandra.Mapping;
 
@@ -91,6 +92,22 @@ namespace Snd.Sdk.Storage.Base
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         Task<IEnumerable<T>> GetObjectResult<T>(string cqlStatement);
+        
+        /// <summary>
+        /// Runs a Cql statement and translates into a provided type.
+        /// Careful with queries for this method as it does not page results.
+        /// </summary>
+        /// <param name="cqlStatement"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        Task<IEnumerable<T>> GetObjectResult<T>(RegularStatement cqlStatement);
+
+        /// <summary>
+        /// Runs a Cql statement and returns a boolean result indicating success.
+        /// </summary>
+        /// <param name="cqlStatement"></param>
+        /// <returns></returns>
+        public Task<bool> ExecuteStatement(RegularStatement cqlStatement);
 
         /// <summary>
         /// Removes a specified entity from an entity collection.

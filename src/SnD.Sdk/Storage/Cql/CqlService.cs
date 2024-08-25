@@ -124,6 +124,29 @@ namespace Snd.Sdk.Storage.Cql
             var mapper = new Mapper(this.session);
             return mapper.FetchAsync<T>(cqlStatement);
         }
+        
+        /// <inheritdoc />
+        public Task<IEnumerable<T>> GetObjectResult<T>(RegularStatement cqlStatement)
+        {
+            var mapper = new Mapper(this.session);
+            return mapper.FetchAsync<T>(new Cassandra.Mapping.Cql(cqlStatement.QueryString, cqlStatement.QueryValues));
+        }
+        
+        /// <inheritdoc />
+        public Task<bool> ExecuteStatement(RegularStatement cqlStatement)
+        {
+            
+            return this.session.ExecuteAsync(cqlStatement)
+                .TryMap(maybeResult =>
+                {
+                    this.logger.LogDebug("Statement executed, trace: {queryTrace}", maybeResult.Info.QueryTrace);
+                    return true;
+                }, exception =>
+                {
+                    this.logger.LogError(exception, "Failed to execute a CQL statement");
+                    return false;
+                });
+        }
 
         /// <inheritdoc />
         public string GetSelectAllExpression<T>()
