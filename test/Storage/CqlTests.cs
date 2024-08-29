@@ -20,28 +20,18 @@ namespace Snd.Sdk.Tests.Storage
         }
 
         [Theory]
-        [InlineData("1000 per second", true)]
-        [InlineData("50000 per minute", true)]
-        public async Task ExecuteWithRetryAndRateLimit_ExecutesSuccessfully(string rateLimit, bool expectedResult)
+        [InlineData(1000, 1, true)]
+        [InlineData(50000, 1, true)]
+        public async Task ExecuteWithRetryAndRateLimit_ExecutesSuccessfully(int rateLimit, int rateLimitPeriodSeconds, bool expectedResult)
         {
             var loggerMock = new Mock<ILogger<object>>();
             var cqlApiCallMock = new Mock<Func<CancellationToken, Task<bool>>>();
             cqlApiCallMock.Setup(c => c(It.IsAny<CancellationToken>())).ReturnsAsync(expectedResult);
             var cancellationToken = CancellationToken.None;
 
-            var result = await cqlApiCallMock.Object.ExecuteWithRetryAndRateLimit(loggerMock.Object, rateLimit, cancellationToken);
+            var result = await cqlApiCallMock.Object.ExecuteWithRetryAndRateLimit(loggerMock.Object, rateLimit,TimeSpan.FromSeconds(rateLimitPeriodSeconds), cancellationToken);
 
             Assert.True(result);
-        }
-
-        [Fact]
-        public async Task ExecuteWithRetryAndRateLimit_InvalidRateLimitUnit()
-        {
-            var loggerMock = new Mock<ILogger<object>>();
-            var cqlApiCallMock = new Mock<Func<CancellationToken, Task<int>>>();
-            var cancellationToken = CancellationToken.None;
-
-            await Assert.ThrowsAsync<ArgumentException>(() => cqlApiCallMock.Object.ExecuteWithRetryAndRateLimit(loggerMock.Object, "1000 per min", cancellationToken));
         }
     }
 }

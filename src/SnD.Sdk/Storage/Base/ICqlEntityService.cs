@@ -42,8 +42,9 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="rateLimit">Rate limit for the operation. Default is "1000 per second".</param>
         /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
         /// <returns>Returns a task that represents the asynchronous operation. The task result contains a boolean indicating success or failure.</returns>
-        Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
-            bool insertNulls = false, string rateLimit = "1000 per second", CancellationToken cancellationToken = default);
+        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
+            bool insertNulls = false, int rateLimit = 1000, TimeSpan rateLimitPeriod = default,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates a pair of entities atomically with optional TTL.
@@ -122,7 +123,8 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="pagingState">Page identifier to return.</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        Task<IPage<T>> GetEntityPage<T>(Func<Table<T>, CqlQuery<T>> selectEntityDelegate, int? pageSize = null, byte[] pagingState = null);
+        Task<IPage<T>> GetEntityPage<T>(Func<Table<T>, CqlQuery<T>> selectEntityDelegate, int? pageSize = null,
+            byte[] pagingState = null);
 
         /// <summary>
         /// Reads a subset of a paged query using paging state blob. If not provided, will always return the first page.

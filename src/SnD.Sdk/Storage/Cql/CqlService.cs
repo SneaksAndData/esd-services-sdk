@@ -163,13 +163,17 @@ namespace Snd.Sdk.Storage.Cql
 
         /// <inheritdoc />
         public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
-            bool insertNulls = false, string rateLimit = "1000 per second", CancellationToken cancellationToken = default)
+            bool insertNulls = false, int rateLimit = 1000, TimeSpan rateLimitPeriod = default, CancellationToken cancellationToken = default)
         {
+            if (rateLimitPeriod == default)
+            {
+                rateLimitPeriod = TimeSpan.FromSeconds(1); // Default to 1000 requests per second
+            }
             var totalBatches = (entities.Count + batchSize - 1) / batchSize;
             for (int i = 0; i < totalBatches; i++)
             {
                 var batch = CreateBatch(entities, i, batchSize, ttlSeconds, insertNulls);
-                ExecuteBatch(batch, i, rateLimit, cancellationToken);
+                ExecuteBatch(batch, i, rateLimit, rateLimitPeriod, cancellationToken);
             }
 
             return Task.FromResult(true);
@@ -189,7 +193,7 @@ namespace Snd.Sdk.Storage.Cql
             return batch;
         }
 
-        private Task<bool> ExecuteBatch(Batch batch, int batchIndex, string rateLimit = "1000 per second", CancellationToken cancellationToken = default)
+        private Task<bool> ExecuteBatch(Batch batch, int batchIndex, int rateLimit, TimeSpan rateLimitPeriod, CancellationToken cancellationToken = default)
         {
             var cqlUpsert = (CancellationToken ct) => batch.ExecuteAsync().TryMap((() =>
             {
@@ -200,7 +204,7 @@ namespace Snd.Sdk.Storage.Cql
                 this.logger.LogError(exception, "Failed to insert batch at index {BatchIndex}.", batchIndex);
                 return false;
             });
-            return cqlUpsert.ExecuteWithRetryAndRateLimit(this.logger, rateLimit, cancellationToken);
+            return cqlUpsert.ExecuteWithRetryAndRateLimit(this.logger, rateLimit, rateLimitPeriod, cancellationToken);
         }
 
         /// <inheritdoc />

@@ -26,31 +26,15 @@ public static class CqlApiExtensions
     /// <returns>A task that represents the asynchronous operation, which produces the result of the CQL API call.</returns>
     public static Task<TResult> ExecuteWithRetryAndRateLimit<TResult, TCaller>(
         this Func<CancellationToken, Task<TResult>> cqlApiCall,
-        ILogger<TCaller> logger, string rateLimit = "1000 per second",
+        ILogger<TCaller> logger,
+        int rateLimit, TimeSpan rateLimitPeriod,
         CancellationToken cancellationToken = default
     )
     {
-        var wrapPolicy = CreateRetryPolicy(logger).WrapAsync(CreateRateLimitPolicy(rateLimit));
+        var wrapPolicy = CreateRetryPolicy(logger).WrapAsync(Policy.RateLimitAsync(rateLimit, rateLimitPeriod));
         var wrappedTask = cqlApiCall.WithWrapPolicy(wrapPolicy, cancellationToken);
 
         return wrappedTask;
-    }
-
-    private static AsyncRateLimitPolicy CreateRateLimitPolicy(string rateLimit)
-    {
-        var rateParts = rateLimit.Split(' ');
-        var limit = int.Parse(rateParts[0]);
-        var perUnit = rateParts[2];
-
-        var timeSpan = perUnit.ToLower() switch
-        {
-            "second" => TimeSpan.FromSeconds(1),
-            "minute" => TimeSpan.FromMinutes(1),
-            "hour" => TimeSpan.FromHours(1),
-            _ => throw new ArgumentException("Invalid rate limit unit.")
-        };
-
-        return Policy.RateLimitAsync(limit, timeSpan);
     }
 
     private static AsyncRetryPolicy CreateRetryPolicy(ILogger logger)
