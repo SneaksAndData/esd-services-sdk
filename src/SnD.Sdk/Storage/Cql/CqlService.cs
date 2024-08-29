@@ -19,6 +19,7 @@ namespace Snd.Sdk.Storage.Cql
     /// <summary>
     /// CQL-API compatible entity collection service.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class CqlService : ICqlEntityService
     {
         private readonly ILogger<CqlService> logger;
@@ -161,7 +162,6 @@ namespace Snd.Sdk.Storage.Cql
         }
 
         /// <inheritdoc />
-        [ExcludeFromCodeCoverage]
         public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
             bool insertNulls = false, string rateLimit = "1000 per second", CancellationToken cancellationToken = default)
         {

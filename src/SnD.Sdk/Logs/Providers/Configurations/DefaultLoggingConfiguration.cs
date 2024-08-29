@@ -1,10 +1,12 @@
-﻿using Serilog;
+﻿using System.Diagnostics.CodeAnalysis;
+using Serilog;
 
 namespace Snd.Sdk.Logs.Providers.Configurations
 {
     /// <summary>
     /// Extension methods for configuration of all sinks
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class DefaultLoggingConfiguration
     {
         /// <summary>
