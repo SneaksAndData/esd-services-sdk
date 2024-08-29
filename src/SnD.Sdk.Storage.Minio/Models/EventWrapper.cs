@@ -214,7 +214,7 @@ namespace Snd.Sdk.Storage.Minio.Models
 
         /// <summary>
         /// Gets or sets the source of the event.
-        /// </summary
+        /// </summary>
         [JsonPropertyName("source")]
         public EventSource Source { get; set; }
     }
