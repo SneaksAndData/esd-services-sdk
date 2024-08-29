@@ -5,13 +5,12 @@ using Snd.Sdk.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Util;
 using Cassandra;
 using Cassandra.Data.Linq;
 using Cassandra.Mapping;
-using Polly;
-using Polly.RateLimit;
 using Snd.Sdk.Storage.Base;
 
 namespace Snd.Sdk.Storage.Cql
@@ -162,56 +161,46 @@ namespace Snd.Sdk.Storage.Cql
 
         /// <inheritdoc />
         public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
-            bool insertNulls = false, string rateLimit = "1000 per second")
+            bool insertNulls = false, string rateLimit = "1000 per second", CancellationToken cancellationToken = default)
         {
-            var rateLimiter = CreateRateLimiter(rateLimit);
             var totalBatches = (entities.Count + batchSize - 1) / batchSize;
             for (int i = 0; i < totalBatches; i++)
             {
-                var batch = this.session.CreateBatch(BatchType.Unlogged);
-                var start = i * batchSize;
-                var end = Math.Min(start + batchSize, entities.Count);
-
-                for (var j = start; j < end; j++)
-                {
-                    batch.Append(GetInsertCommand(entities[j], ttlSeconds, insertNulls));
-                }
-
-                rateLimiter.ExecuteAsync((() =>
-                {
-                    return batch.ExecuteAsync().TryMap((() => true), exception =>
-                    {
-                        this.logger.LogError(exception, "Failed to insert batch at index {BatchIndex}", i);
-                        return false;
-                    });
-                }));
+                var batch = CreateBatch(entities, i, batchSize, ttlSeconds, insertNulls);
+                ExecuteBatch(batch, i, rateLimit, cancellationToken);
             }
+
             return Task.FromResult(true);
         }
 
-        private AsyncRateLimitPolicy CreateRateLimiter(string rateLimit)
+        // This method creates a batch of insert commands based on the entities
+        private Batch CreateBatch<T>(List<T> entities, int batchIndex, int batchSize, int? ttlSeconds, bool insertNulls)
         {
-            var rateParts = rateLimit.Split(' ');
-            var limit = int.Parse(rateParts[0]);
-            var perUnit = rateParts[2];
+            var batch = this.session.CreateBatch(BatchType.Unlogged);
+            var start = batchIndex * batchSize;
+            var end = Math.Min(start + batchSize, entities.Count);
 
-            TimeSpan timeSpan;
-            switch (perUnit.ToLower())
+            for (var j = start; j < end; j++)
             {
-                case "second":
-                    timeSpan = TimeSpan.FromSeconds(1);
-                    break;
-                case "minute":
-                    timeSpan = TimeSpan.FromMinutes(1);
-                    break;
-                case "hour":
-                    timeSpan = TimeSpan.FromHours(1);
-                    break;
-                default:
-                    throw new ArgumentException("Invalid rate limit unit.");
+                batch.Append(GetInsertCommand(entities[j], ttlSeconds, insertNulls));
             }
 
-            return Policy.RateLimitAsync(limit, timeSpan);
+            return batch;
+        }
+
+        private Task<bool> ExecuteBatch(Batch batch, int batchIndex,  string rateLimit = "1000 per second",
+            CancellationToken cancellationToken = default)
+        {
+            var cqlUpsert = (CancellationToken ct) => batch.ExecuteAsync().TryMap((() =>
+            {
+                this.logger.LogDebug("Successfully inserted batch at index {BatchIndex}. Trace: {queryTrace}", batchIndex, batch.QueryTrace);
+                return true;
+            }), exception =>
+            {
+                this.logger.LogError(exception, "Failed to insert batch at index {BatchIndex}.", batchIndex);
+                return false;
+            });
+            return cqlUpsert.ExecuteWithRetryAndRateLimit(this.logger, rateLimit, cancellationToken);
         }
 
         /// <inheritdoc />

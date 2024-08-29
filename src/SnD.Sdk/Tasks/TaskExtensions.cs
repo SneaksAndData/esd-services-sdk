@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka;
 using Polly.Retry;
+using Polly.Wrap;
 
 namespace Snd.Sdk.Tasks
 {
@@ -116,6 +117,19 @@ namespace Snd.Sdk.Tasks
         /// <param name="cancellationToken">Optional cancellation token for this policy wrapper.</param>
         /// <returns>A task that represents the asynchronous operation, which produces the result of the wrapped task.</returns>
         public static Task<TResult> WithRetryPolicy<TResult>(this Func<CancellationToken, Task<TResult>> wrapped, AsyncRetryPolicy policy, CancellationToken cancellationToken = default)
+        {
+            return policy.ExecuteAsync(wrapped, cancellationToken);
+        }
+
+        /// <summary>
+        /// Applies the specified policy wrap to the specified task and returns the result.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result produced by the task.</typeparam>
+        /// <param name="wrapped">The task to which to apply the policy wrap.</param>
+        /// <param name="policy">The policy wrap to apply.</param>
+        /// <param name="cancellationToken">Optional cancellation token for this policy wrapper.</param>
+        /// <returns>A task that represents the asynchronous operation, which produces the result of the wrapped task.</returns>
+        public static Task<TResult> WithWrapPolicy<TResult>(this Func<CancellationToken, Task<TResult>> wrapped, AsyncPolicyWrap policy, CancellationToken cancellationToken = default)
         {
             return policy.ExecuteAsync(wrapped, cancellationToken);
         }

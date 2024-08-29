@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Akka;
 using Akka.Streams.Dsl;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="insertNulls">Specifies whether to merge non-supplied fields. Default is false.</param>
         /// <returns></returns>
         Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
-            bool insertNulls = false, string rateLimit = "1000 per second");
+            bool insertNulls = false, string rateLimit = "1000 per second", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates a pair of entities atomically with optional TTL.
