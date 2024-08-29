@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Snd.Sdk.Storage.Base;
@@ -10,6 +11,7 @@ namespace Snd.Sdk.Storage.Providers;
 /// <summary>
 /// Provider for Redis service.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class RedisServiceProvider
 {
     /// <summary>
