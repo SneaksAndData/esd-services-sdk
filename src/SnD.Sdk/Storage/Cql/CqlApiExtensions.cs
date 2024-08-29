@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ namespace Snd.Sdk.Storage.Cql;
 /// <summary>
 /// Provides extension methods for CQL API.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class CqlApiExtensions
 {
     /// <summary>

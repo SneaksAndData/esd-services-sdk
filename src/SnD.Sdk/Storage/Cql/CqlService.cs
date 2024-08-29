@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Snd.Sdk.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -160,6 +161,7 @@ namespace Snd.Sdk.Storage.Cql
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
             bool insertNulls = false, string rateLimit = "1000 per second", CancellationToken cancellationToken = default)
         {
