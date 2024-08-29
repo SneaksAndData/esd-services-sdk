@@ -72,11 +72,11 @@ public static class CqlApiExtensions
                     // Exponential backoff for other exceptions
                     return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
                 },
-                onRetryAsync: (exception, timeSpan, retryCount, context) =>
+                onRetryAsync: (exception, timeSpan, retryCount, _) =>
                 {
                     logger.LogWarning(exception,
-                        "Retrying batch {BatchIndex} after {SleepDuration}. Retry attempt {RetryCount}",
-                        context["BatchIndex"], timeSpan, retryCount);
+                        "Retrying batch after {SleepDuration}. Retry attempt {RetryCount}",
+                        timeSpan, retryCount);
                     return Task.CompletedTask;
                 });
     }
