@@ -173,7 +173,6 @@ namespace Snd.Sdk.Storage.Cql
             return Task.FromResult(true);
         }
 
-        // This method creates a batch of insert commands based on the entities
         private Batch CreateBatch<T>(List<T> entities, int batchIndex, int batchSize, int? ttlSeconds, bool insertNulls)
         {
             var batch = this.session.CreateBatch(BatchType.Unlogged);
@@ -188,8 +187,7 @@ namespace Snd.Sdk.Storage.Cql
             return batch;
         }
 
-        private Task<bool> ExecuteBatch(Batch batch, int batchIndex,  string rateLimit = "1000 per second",
-            CancellationToken cancellationToken = default)
+        private Task<bool> ExecuteBatch(Batch batch, int batchIndex, string rateLimit = "1000 per second", CancellationToken cancellationToken = default)
         {
             var cqlUpsert = (CancellationToken ct) => batch.ExecuteAsync().TryMap((() =>
             {
