@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Util.Internal;
-using k8s;
 using k8s.Autorest;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
@@ -483,7 +482,7 @@ namespace Snd.Sdk.Kubernetes
         /// <param name="kind">The kind of the owner object.</param>
         /// <param name="metadata">The metadata of the owner object.</param>
         /// <returns>The Kubernetes Job object with the added owner reference.</returns>
-        private static V1Job WithOwnerReference(this V1Job job, string apiVersion, string kind, V1ObjectMeta metadata)
+        public static V1Job WithOwnerReference(this V1Job job, string apiVersion, string kind, V1ObjectMeta metadata)
         {
             job.Metadata.OwnerReferences ??= new List<V1OwnerReference>();
             job.Metadata.OwnerReferences.Add(new V1OwnerReference(apiVersion, kind, metadata.Name,
@@ -722,13 +721,14 @@ namespace Snd.Sdk.Kubernetes
         {
             var policy = Policy
                 .Handle<HttpRequestException>(ex => ex.InnerException is IOException)
+                .Or<HttpOperationException>(ex => ex.Response.StatusCode is HttpStatusCode.InternalServerError or HttpStatusCode.ServiceUnavailable)
                 .WaitAndRetryAsync(
                     retryCount: 3,
                     sleepDurationProvider: (_, _, _) => TimeSpan.FromSeconds(0.5d),
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "Transport level error occured when connecting to the API Server. Will retry in {retryInSeconds} seconds",
+                            "Server-side or transport error occured when calling the API Server. Will retry in {retryInSeconds} seconds",
                             span.TotalSeconds);
                         return Task.CompletedTask;
                     });

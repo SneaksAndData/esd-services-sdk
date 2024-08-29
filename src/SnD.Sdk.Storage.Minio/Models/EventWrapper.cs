@@ -66,7 +66,8 @@ namespace Snd.Sdk.Storage.Minio.Models
     /// <summary>
     /// Represents an object stored in a bucket.
     /// </summary>
-    public record Object
+    public record 
+    
     {
         /// <summary>
         /// Gets or sets the key of the object.
