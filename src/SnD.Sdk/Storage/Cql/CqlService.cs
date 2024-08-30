@@ -4,7 +4,9 @@ using Microsoft.Extensions.Logging;
 using Snd.Sdk.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka.Util;
 using Cassandra;
@@ -17,6 +19,7 @@ namespace Snd.Sdk.Storage.Cql
     /// <summary>
     /// CQL-API compatible entity collection service.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class CqlService : ICqlEntityService
     {
         private readonly ILogger<CqlService> logger;
@@ -159,7 +162,57 @@ namespace Snd.Sdk.Storage.Cql
         }
 
         /// <inheritdoc />
-        public Task<bool> UpsertAtomicPair<TFirst, TSecond>(TFirst first, TSecond second, int? ttlSeconds = null, bool insertNulls = false)
+        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, TimeSpan? ttlSeconds = null,
+            bool insertNulls = false, int rateLimit = 1000, TimeSpan rateLimitPeriod = default, CancellationToken cancellationToken = default)
+        {
+            if (rateLimitPeriod == default)
+            {
+                rateLimitPeriod = TimeSpan.FromSeconds(1); // Default to 1000 requests per second
+            }
+            var totalBatches = (entities.Count + batchSize - 1) / batchSize;
+
+            return Task.WhenAll(Enumerable.Range(0, totalBatches)
+                .Select(i => CreateBatch(entities, i, batchSize, ttlSeconds, insertNulls))
+                .Select((batch, i) => ExecuteBatch(batch, i, rateLimit, rateLimitPeriod, cancellationToken)))
+                .TryMap(results => results.All(r => r), exception =>
+                {
+                    this.logger.LogError(exception, "Failed to insert batch");
+                    return false;
+                });
+        }
+
+        private Batch CreateBatch<T>(List<T> entities, int batchIndex, int batchSize, TimeSpan? ttlSeconds, bool insertNulls)
+        {
+            var batch = this.session.CreateBatch(BatchType.Unlogged);
+            var start = batchIndex * batchSize;
+            var end = Math.Min(start + batchSize, entities.Count);
+            int? ttl = ttlSeconds.HasValue ? (int)ttlSeconds.Value.TotalSeconds : null;
+
+            for (var j = start; j < end; j++)
+            {
+                batch.Append(GetInsertCommand(entities[j], ttl, insertNulls));
+            }
+
+            return batch;
+        }
+
+        private Task<bool> ExecuteBatch(Batch batch, int batchIndex, int rateLimit, TimeSpan rateLimitPeriod, CancellationToken cancellationToken = default)
+        {
+            var cqlUpsert = (CancellationToken ct) => batch.ExecuteAsync().TryMap((() =>
+            {
+                this.logger.LogDebug("Successfully inserted batch at index {BatchIndex}. Trace: {queryTrace}", batchIndex, batch.QueryTrace);
+                return true;
+            }), exception =>
+            {
+                this.logger.LogError(exception, "Failed to insert batch at index {BatchIndex}.", batchIndex);
+                return false;
+            });
+            return cqlUpsert.ExecuteWithRetryAndRateLimit(this.logger, rateLimit, rateLimitPeriod, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<bool> UpsertAtomicPair<TFirst, TSecond>(TFirst first, TSecond second, int? ttlSeconds = null,
+            bool insertNulls = false)
         {
             var loggedBatch = this.session.CreateBatch(BatchType.Logged);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Akka;
 using Akka.Streams.Dsl;
 using System.Threading.Tasks;
@@ -29,6 +30,22 @@ namespace Snd.Sdk.Storage.Base
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         Task<bool> UpsertEntity<T>(T entity, int? ttlSeconds = null, bool insertNulls = false);
+
+        /// <summary>
+        /// Inserts or updates a batch of entities in the table with optional TTL and null field handling.
+        /// </summary>
+        /// <typeparam name="T">The type of the entities to be upserted.</typeparam>
+        /// <param name="entities">A list of entities to be upserted.</param>
+        /// <param name="batchSize">The number of entities to be processed in each batch. Default is 1000.</param>
+        /// <param name="ttlSeconds">Optional time to live for the entities in seconds. Default is null.</param>
+        /// <param name="insertNulls">Specifies whether to merge non-supplied fields. Default is false.</param>
+        /// <param name="rateLimit">Rate limit for the operation. Default is 1000.</param>
+        /// <param name="rateLimitPeriod">The time period for the rate limit. Default is 1 second.</param>
+        /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
+        /// <returns>Returns a task that represents the asynchronous operation. The task result contains a boolean indicating success or failure.</returns>
+        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, TimeSpan? ttlSeconds = null,
+            bool insertNulls = false, int rateLimit = 1000, TimeSpan rateLimitPeriod = default,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates a pair of entities atomically with optional TTL.
@@ -107,7 +124,8 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="pagingState">Page identifier to return.</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        Task<IPage<T>> GetEntityPage<T>(Func<Table<T>, CqlQuery<T>> selectEntityDelegate, int? pageSize = null, byte[] pagingState = null);
+        Task<IPage<T>> GetEntityPage<T>(Func<Table<T>, CqlQuery<T>> selectEntityDelegate, int? pageSize = null,
+            byte[] pagingState = null);
 
         /// <summary>
         /// Reads a subset of a paged query using paging state blob. If not provided, will always return the first page.

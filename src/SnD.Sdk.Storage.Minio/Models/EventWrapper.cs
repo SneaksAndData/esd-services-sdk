@@ -131,7 +131,7 @@ namespace Snd.Sdk.Storage.Minio.Models
         /// <summary>
         /// Gets or sets the object involved in the event.
         /// </summary>
-        [JsonPropertyName("@object")]
+        [JsonPropertyName("object")]
         public Object Object { get; set; }
     }
 
