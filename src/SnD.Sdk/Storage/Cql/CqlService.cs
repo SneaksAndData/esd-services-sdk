@@ -162,7 +162,7 @@ namespace Snd.Sdk.Storage.Cql
         }
 
         /// <inheritdoc />
-        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
+        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, TimeSpan? ttlSeconds = null,
             bool insertNulls = false, int rateLimit = 1000, TimeSpan rateLimitPeriod = default, CancellationToken cancellationToken = default)
         {
             if (rateLimitPeriod == default)
@@ -179,15 +179,16 @@ namespace Snd.Sdk.Storage.Cql
             return Task.FromResult(true);
         }
 
-        private Batch CreateBatch<T>(List<T> entities, int batchIndex, int batchSize, int? ttlSeconds, bool insertNulls)
+        private Batch CreateBatch<T>(List<T> entities, int batchIndex, int batchSize, TimeSpan? ttlSeconds, bool insertNulls)
         {
             var batch = this.session.CreateBatch(BatchType.Unlogged);
             var start = batchIndex * batchSize;
             var end = Math.Min(start + batchSize, entities.Count);
+            int? ttl = ttlSeconds.HasValue ? (int)ttlSeconds.Value.TotalSeconds : null;
 
             for (var j = start; j < end; j++)
             {
-                batch.Append(GetInsertCommand(entities[j], ttlSeconds, insertNulls));
+                batch.Append(GetInsertCommand(entities[j], ttl, insertNulls));
             }
 
             return batch;

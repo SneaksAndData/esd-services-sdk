@@ -42,7 +42,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="rateLimit">Rate limit for the operation. Default is "1000 per second".</param>
         /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
         /// <returns>Returns a task that represents the asynchronous operation. The task result contains a boolean indicating success or failure.</returns>
-        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, int? ttlSeconds = null,
+        public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, TimeSpan? ttlSeconds = null,
             bool insertNulls = false, int rateLimit = 1000, TimeSpan rateLimitPeriod = default,
             CancellationToken cancellationToken = default);
 
