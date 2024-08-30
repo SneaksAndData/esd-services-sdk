@@ -21,7 +21,8 @@ public static class CqlApiExtensions
     /// <typeparam name="TCaller">The type of the caller for logging purposes.</typeparam>
     /// <param name="cqlApiCall">The CQL API call to be executed.</param>
     /// <param name="logger">The logger to log retry and rate limit information.</param>
-    /// <param name="rateLimit">The rate limit string (e.g., "1000 per second").</param>
+    /// <param name="rateLimit">The rate limit (number of requests) per specified period.</param>
+    /// <param name="rateLimitPeriod">The time period for the rate limit.</param>
     /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, which produces the result of the CQL API call.</returns>
     public static Task<TResult> ExecuteWithRetryAndRateLimit<TResult, TCaller>(

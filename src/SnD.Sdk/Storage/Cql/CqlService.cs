@@ -170,13 +170,15 @@ namespace Snd.Sdk.Storage.Cql
                 rateLimitPeriod = TimeSpan.FromSeconds(1); // Default to 1000 requests per second
             }
             var totalBatches = (entities.Count + batchSize - 1) / batchSize;
-            for (int i = 0; i < totalBatches; i++)
-            {
-                var batch = CreateBatch(entities, i, batchSize, ttlSeconds, insertNulls);
-                ExecuteBatch(batch, i, rateLimit, rateLimitPeriod, cancellationToken);
-            }
 
-            return Task.FromResult(true);
+            return Task.WhenAll(Enumerable.Range(0, totalBatches)
+                .Select(i => CreateBatch(entities, i, batchSize, ttlSeconds, insertNulls))
+                .Select((batch, i) => ExecuteBatch(batch, i, rateLimit, rateLimitPeriod, cancellationToken)))
+                .TryMap(results => results.All(r => r), exception =>
+                {
+                    this.logger.LogError(exception, "Failed to insert batch");
+                    return false;
+                });
         }
 
         private Batch CreateBatch<T>(List<T> entities, int batchIndex, int batchSize, TimeSpan? ttlSeconds, bool insertNulls)

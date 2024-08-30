@@ -39,7 +39,8 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="batchSize">The number of entities to be processed in each batch. Default is 1000.</param>
         /// <param name="ttlSeconds">Optional time to live for the entities in seconds. Default is null.</param>
         /// <param name="insertNulls">Specifies whether to merge non-supplied fields. Default is false.</param>
-        /// <param name="rateLimit">Rate limit for the operation. Default is "1000 per second".</param>
+        /// <param name="rateLimit">Rate limit for the operation. Default is 1000.</param>
+        /// <param name="rateLimitPeriod">The time period for the rate limit. Default is 1 second.</param>
         /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
         /// <returns>Returns a task that represents the asynchronous operation. The task result contains a boolean indicating success or failure.</returns>
         public Task<bool> UpsertBatch<T>(List<T> entities, int batchSize = 1000, TimeSpan? ttlSeconds = null,
