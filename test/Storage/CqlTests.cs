@@ -29,7 +29,7 @@ namespace Snd.Sdk.Tests.Storage
             cqlApiCallMock.Setup(c => c(It.IsAny<CancellationToken>())).ReturnsAsync(expectedResult);
             var cancellationToken = CancellationToken.None;
 
-            var result = await cqlApiCallMock.Object.ExecuteWithRetryAndRateLimit(loggerMock.Object, rateLimit,TimeSpan.FromSeconds(rateLimitPeriodSeconds), cancellationToken);
+            var result = await cqlApiCallMock.Object.ExecuteWithRetryAndRateLimit(loggerMock.Object, rateLimit, TimeSpan.FromSeconds(rateLimitPeriodSeconds), cancellationToken);
 
             Assert.True(result);
         }
