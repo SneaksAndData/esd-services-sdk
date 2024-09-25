@@ -1,3 +1,4 @@
+using System;
 using SnD.Sdk.Extensions.Environment.Hosting;
 
 namespace Snd.Sdk.Storage.Minio.Providers.Configurations;
@@ -38,13 +39,20 @@ public sealed class MinioConfiguration
     /// <returns></returns>
     public static MinioConfiguration CreateFromEnv()
     {
+        string endpoint = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_ENDPOINT");
+        bool isUri = Uri.TryCreate(endpoint, UriKind.Absolute, out Uri uriResult) &&
+                     (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+        string minioUseSslValue = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_USE_SSL");
+        bool useSsl = !bool.TryParse(minioUseSslValue, out useSsl) || useSsl;
+
         return new MinioConfiguration
         {
-            Endpoint = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_ENDPOINT"),
+            Endpoint = isUri ? uriResult.Host : endpoint,
             AccessKey = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_ACCESS_KEY"),
             SecretKey = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_SECRET_KEY"),
             Region = EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_REGION"),
-            UseSsl = bool.Parse(EnvironmentExtensions.GetDomainEnvironmentVariable("MINIO_USE_SSL") ?? "true")
+            UseSsl = useSsl
         };
     }
 }
