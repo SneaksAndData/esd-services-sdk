@@ -20,6 +20,11 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     private readonly IAmazonSQS client;
     private readonly ILogger<AmazonSqsService> logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AmazonSqsService"/> class.
+    /// </summary>
+    /// <param name="client">The Amazon SQS client.</param>
+    /// <param name="logger">The logger instance.</param>
     public AmazonSqsService(IAmazonSQS client, ILogger<AmazonSqsService> logger)
     {
         this.client = client;
