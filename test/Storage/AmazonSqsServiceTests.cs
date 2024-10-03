@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Snd.Sdk.Tests.Storage;
 
-public class AmazonSqsServiceTests: IClassFixture<AkkaFixture>, IClassFixture<LoggerFixture>
+public class AmazonSqsServiceTests : IClassFixture<AkkaFixture>, IClassFixture<LoggerFixture>
 {
     private readonly AkkaFixture akkaFixture;
     private readonly LoggerFixture loggerFixture;
