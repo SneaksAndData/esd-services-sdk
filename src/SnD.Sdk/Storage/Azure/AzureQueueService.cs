@@ -14,7 +14,7 @@ namespace Snd.Sdk.Storage.Azure
     /// <summary>
     /// Queue Service implementation for Azure.
     /// </summary>
-    public class AzureQueueService : IQueueService
+    public class AzureQueueService : IQueueService<QueueSendResponse, QueueReleaseResponse>
     {
         private readonly QueueServiceClient queueServiceClient;
         private readonly ILogger<AzureQueueService> logger;
