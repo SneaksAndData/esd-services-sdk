@@ -26,13 +26,12 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
         this.logger = logger;
     }
 
-    private async Task<string> GetQueueUrlAsync(string queueName)
+    private string GetQueueUrlAsync(string queueName)
     {
-        var response = await this.client.GetQueueUrlAsync(new GetQueueUrlRequest
+        return this.client.GetQueueUrlAsync(new GetQueueUrlRequest
         {
             QueueName = queueName
-        });
-        return response.QueueUrl;
+        }).GetAwaiter().GetResult().QueueUrl;
     }
 
     /// <inheritdoc />
@@ -42,19 +41,25 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
 
         var messageRequest = new SendMessageRequest()
         {
-            QueueUrl = GetQueueUrlAsync(queueName).GetAwaiter().GetResult(),
+            QueueUrl = GetQueueUrlAsync(queueName),
             MessageBody = messageText
         };
-        return this.client.SendMessageAsync(messageRequest).Map(result => new AmazonSqsSendResponse { MessageId = result.MessageId, SequenceNumber = result.SequenceNumber });
+        return this.client.SendMessageAsync(messageRequest).Map(result => new AmazonSqsSendResponse
+        { MessageId = result.MessageId, SequenceNumber = result.SequenceNumber });
     }
 
     /// <inheritdoc />
-    public Source<QueueElement, NotUsed> GetQueueMessages(string queueName, TimeSpan visibilityTimeout, int prefetchCount, TimeSpan pollInterval)
+    public Source<QueueElement, NotUsed> GetQueueMessages(string queueName, TimeSpan visibilityTimeout,
+        int prefetchCount, TimeSpan pollInterval)
     {
-        this.logger.LogDebug("Creating a stream from queue: {queueName}, using visibility timeout {visibilityTimeout}", queueName, visibilityTimeout);
+        this.logger.LogDebug("Creating a stream from queue: {queueName}, using visibility timeout {visibilityTimeout}",
+            queueName, visibilityTimeout);
         var settings = SqsSourceSettings.Default
-            .WithVisibilityTimeout(TimeSpan.FromSeconds(60));
-        return SqsSource.Create(this.client, GetQueueUrlAsync(queueName).GetAwaiter().GetResult(), settings)
+            .WithVisibilityTimeout(visibilityTimeout)
+            .WithMaxBatchSize(Math.Min(10, prefetchCount))
+            .WithWaitTime(pollInterval);
+
+        return SqsSource.Create(this.client, GetQueueUrlAsync(queueName), settings)
             .Select(msg =>
                 new QueueElement
                 {
@@ -69,8 +74,10 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     public Task<AmazonSqsReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId)
     {
         this.logger.LogDebug("Changing visibility of {messageId} from {queueName}", messageId, queueName);
-        return this.client.ChangeMessageVisibilityAsync(GetQueueUrlAsync(queueName).GetAwaiter().GetResult(), receiptId, 0)
-            .Map(result => new AmazonSqsReleaseResponse { MessageId = messageId, Success = result.HttpStatusCode == System.Net.HttpStatusCode.OK });
+        return this.client
+            .ChangeMessageVisibilityAsync(GetQueueUrlAsync(queueName), receiptId, 0)
+            .Map(result => new AmazonSqsReleaseResponse
+            { MessageId = messageId, Success = result.HttpStatusCode == System.Net.HttpStatusCode.OK });
     }
 
     /// <inheritdoc />
@@ -78,11 +85,11 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     {
         var delRequest = new DeleteMessageRequest
         {
-            QueueUrl = GetQueueUrlAsync(queueName).GetAwaiter().GetResult(),
+            QueueUrl = GetQueueUrlAsync(queueName),
             ReceiptHandle = receiptId
         };
         this.logger.LogDebug("Removing {messageId} from {queueName}", messageId, queueName);
-        return this.client.DeleteMessageAsync(delRequest).Map(result => result.HttpStatusCode == System.Net.HttpStatusCode.OK);
+        return this.client.DeleteMessageAsync(delRequest)
+            .Map(result => result.HttpStatusCode == System.Net.HttpStatusCode.OK);
     }
 }
-
