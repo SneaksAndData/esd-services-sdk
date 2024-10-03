@@ -7,7 +7,7 @@ namespace Snd.Sdk.Storage.Models
     /// Represents the response returned when a message is revealed in the queue, after being hidden.   
     /// Includes information such as the message ID, when the message will be visible in the queue again, and the delete handle of the message.  
     /// </summary> 
-    public sealed class QueueReleaseResponse: IMessageReleaseResponse
+    public sealed class QueueReleaseResponse : IMessageReleaseResponse
     {
         /// <summary>  
         /// Gets or sets the identifier of the message in the queue.  

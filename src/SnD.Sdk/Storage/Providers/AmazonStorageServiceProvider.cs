@@ -57,7 +57,7 @@ namespace Snd.Sdk.Storage.Providers
                 SignatureVersion = awsConfig.SignatureVersion
             };
             services.AddSingleton<IAmazonSQS>(new AmazonSQSClient(awsConfig.AccessKey, awsConfig.SecretKey, clientConfig));
-            return services.AddSingleton< IQueueService<AmazonSqsSendResponse, AmazonSqsReleaseResponse>, AmazonSqsService>();
+            return services.AddSingleton<IQueueService<AmazonSqsSendResponse, AmazonSqsReleaseResponse>, AmazonSqsService>();
         }
     }
 }

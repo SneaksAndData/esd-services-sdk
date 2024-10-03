@@ -7,7 +7,7 @@ namespace Snd.Sdk.Storage.Models
     /// Represents the response returned when a message is sent to a queue.   
     /// Includes information such as the message ID, the delete handle of the message, and the time the message was inserted.  
     /// </summary>  
-    public sealed class QueueSendResponse: IMessageSendResponse
+    public sealed class QueueSendResponse : IMessageSendResponse
     {
         /// <summary>  
         /// Gets or sets the identifier of the message in the queue.  
