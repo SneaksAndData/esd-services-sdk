@@ -13,8 +13,10 @@
         <PackageReference Include="Akka.Logger.Serilog" Version="1.5.12.1"/>
         <PackageReference Include="Akka.Streams" Version="1.5.19"/>
         <PackageReference Include="Akka.Streams.Azure.StorageQueue" Version="1.5.18"/>
+        <PackageReference Include="Akka.Streams.SQS" Version="1.5.18" />
         <PackageReference Include="Apache.Avro" Version="1.11.3"/>
         <PackageReference Include="AWSSDK.S3" Version="3.7.307.19"/>
+        <PackageReference Include="AWSSDK.SQS" Version="3.7.400.28" />
         <PackageReference Include="Azure.Data.Tables" Version="12.8.3"/>
         <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1"/>
         <PackageReference Include="Azure.Storage.Files.Shares" Version="12.17.1"/>

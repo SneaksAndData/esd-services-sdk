@@ -9,7 +9,7 @@ namespace Snd.Sdk.Storage.Base
     /// <summary>
     /// Remote object queue abstractions
     /// </summary>
-    public interface IQueueService
+    public interface IQueueService<TSendResponse, TReleaseResponse>
     {
         /// <summary>
         /// Retrieves from a queue one-at-a-time, popping prefetchCount at a first iteration.
@@ -27,7 +27,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="queueName">Name of a queue.</param> 
         /// <param name="messageText">Message content</param>
         /// <returns></returns>
-        Task<QueueSendResponse> SendQueueMessage(string queueName, string messageText);
+        Task<TSendResponse> SendQueueMessage(string queueName, string messageText);
 
         /// <summary>
         /// Removes a message from a queue.
@@ -45,6 +45,6 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="receiptId">Pop receipt for the message</param>
         /// <param name="messageId">Identifier of the message</param>
         /// <returns></returns>
-        Task<QueueReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId);
+        Task<TReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId);
     }
 }

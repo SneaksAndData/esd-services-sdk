@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using Snd.Sdk.Storage.Azure;
 using Snd.Sdk.Storage.Base;
+using Snd.Sdk.Storage.Models;
 using Snd.Sdk.Storage.Models.BlobPath;
 using Snd.Sdk.Storage.Providers.Configurations;
 
@@ -58,7 +59,7 @@ namespace Snd.Sdk.Storage.Providers
                 return new QueueServiceClient(azConfig.StorageAccountConnectionString, clientOptions);
             });
 
-            return services.AddSingleton<IQueueService, AzureQueueService>();
+            return services.AddSingleton<IQueueService<QueueSendResponse, QueueReleaseResponse>, AzureQueueService>();
         }
 
         /// <summary>
