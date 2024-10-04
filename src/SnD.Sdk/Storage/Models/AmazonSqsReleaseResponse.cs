@@ -1,11 +1,9 @@
-using Snd.Sdk.Storage.Models.Base;
-
 namespace Snd.Sdk.Storage.Models;
 
 /// <summary>
 /// Represents a response from releasing a message in Amazon SQS.
 /// </summary>
-public sealed class AmazonSqsReleaseResponse : IMessageReleaseResponse
+public sealed class AmazonSqsReleaseResponse
 {
     /// <summary>
     /// Gets or sets the ID of the message.

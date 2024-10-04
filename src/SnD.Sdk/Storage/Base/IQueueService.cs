@@ -3,7 +3,6 @@ using Akka.Streams.Dsl;
 using System;
 using System.Threading.Tasks;
 using Snd.Sdk.Storage.Models;
-using Snd.Sdk.Storage.Models.Base;
 
 namespace Snd.Sdk.Storage.Base
 {
@@ -11,8 +10,6 @@ namespace Snd.Sdk.Storage.Base
     /// Remote object queue abstractions
     /// </summary>
     public interface IQueueService<TSendResponse, TReleaseResponse>
-        where TSendResponse : IMessageSendResponse
-        where TReleaseResponse : IMessageReleaseResponse
     {
         /// <summary>
         /// Retrieves from a queue one-at-a-time, popping prefetchCount at a first iteration.

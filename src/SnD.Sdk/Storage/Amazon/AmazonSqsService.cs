@@ -31,12 +31,12 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
         this.logger = logger;
     }
 
-    private string GetQueueUrlAsync(string queueName)
+    private Task<GetQueueUrlResponse> GetQueueUrlAsync(string queueName)
     {
         return this.client.GetQueueUrlAsync(new GetQueueUrlRequest
         {
             QueueName = queueName
-        }).GetAwaiter().GetResult().QueueUrl;
+        });
     }
 
     /// <inheritdoc />
@@ -46,7 +46,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
 
         var messageRequest = new SendMessageRequest()
         {
-            QueueUrl = GetQueueUrlAsync(queueName),
+            QueueUrl = GetQueueUrlAsync(queueName). GetAwaiter().GetResult().QueueUrl,
             MessageBody = messageText
         };
         return this.client.SendMessageAsync(messageRequest).Map(result => new AmazonSqsSendResponse
@@ -64,7 +64,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
             .WithMaxBatchSize(Math.Min(10, prefetchCount))
             .WithWaitTime(pollInterval);
 
-        return SqsSource.Create(this.client, GetQueueUrlAsync(queueName), settings)
+        return SqsSource.Create(this.client, GetQueueUrlAsync(queueName) .GetAwaiter().GetResult().QueueUrl, settings)
             .Select(msg =>
                 new QueueElement
                 {
@@ -80,7 +80,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     {
         this.logger.LogDebug("Changing visibility of {messageId} from {queueName}", messageId, queueName);
         return this.client
-            .ChangeMessageVisibilityAsync(GetQueueUrlAsync(queueName), receiptId, 0)
+            .ChangeMessageVisibilityAsync(GetQueueUrlAsync(queueName) .GetAwaiter().GetResult().QueueUrl, receiptId, 0)
             .Map(result => new AmazonSqsReleaseResponse
             { MessageId = messageId, Success = result.HttpStatusCode == System.Net.HttpStatusCode.OK });
     }
@@ -90,7 +90,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     {
         var delRequest = new DeleteMessageRequest
         {
-            QueueUrl = GetQueueUrlAsync(queueName),
+            QueueUrl = GetQueueUrlAsync(queueName).GetAwaiter().GetResult().QueueUrl,
             ReceiptHandle = receiptId
         };
         this.logger.LogDebug("Removing {messageId} from {queueName}", messageId, queueName);
