@@ -29,10 +29,10 @@ public class AmazonSqsServiceTests : IClassFixture<AkkaFixture>, IClassFixture<L
     }
 
     [Theory]
-    [InlineData(10, 60, 10)]
-    [InlineData(10, 60, 1)]
-    [InlineData(10, 10, 1)]
-    public async Task GetQueueMessages1(int messagesPerCall, int visibilityTimeoutSeconds, int numCalls)
+    [InlineData(10, 60, 10, false)]
+    [InlineData(10, 60, 1, false)]
+    [InlineData(10, 10, 1, true)]
+    public async Task GetQueueMessages(int messagesPerCall, int visibilityTimeoutSeconds, int numCalls, bool emptyMessageAttributes)
     {
         var queueUrl = "test-queue-url";
         var mockMessages = new List<Message>();
@@ -44,7 +44,7 @@ public class AmazonSqsServiceTests : IClassFixture<AkkaFixture>, IClassFixture<L
                 MessageId = Guid.NewGuid().ToString(),
                 ReceiptHandle = Guid.NewGuid().ToString(),
                 Body = i.ToString(),
-                Attributes = new Dictionary<string, string>
+                Attributes = emptyMessageAttributes ? new Dictionary<string, string>() : new Dictionary<string, string>
                 {
                     { "ApproximateReceiveCount", "3" }
                 }

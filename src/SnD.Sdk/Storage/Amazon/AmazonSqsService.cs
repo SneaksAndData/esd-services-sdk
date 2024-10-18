@@ -71,7 +71,9 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
                     Content = BinaryData.FromString(msg.Body),
                     ElementId = msg.MessageId,
                     DeleteHandle = msg.ReceiptHandle,
-                    DequeueCount = long.TryParse(msg.Attributes["ApproximateReceiveCount"], out var count) ? (long?)count : null
+                    DequeueCount = msg.Attributes.ContainsKey("ApproximateReceiveCount") && long.TryParse(msg.Attributes["ApproximateReceiveCount"], out var count)
+                        ? (long?)count
+                        : null
                 });
     }
 
