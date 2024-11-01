@@ -15,16 +15,18 @@ namespace SnD.Sdk.Storage.Minio;
 /// </summary>
 public class MinioService : IMinioService
 {
-    protected readonly ILogger<MinioClient> logger;
+    protected readonly ILogger<MinioService> logger;
     private readonly IMinioClient minioClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MinioService"/> class.
     /// </summary>
     /// <param name="minioClient">The Minio client to be used for storage operations.</param>
-    public MinioService(IMinioClient minioClient)
+    /// <param name="logger">The logger used for logging Minio operations.</param>
+    public MinioService(IMinioClient minioClient, ILogger<MinioService> logger)
     {
         this.minioClient = minioClient;
+        this.logger = logger;
     }
 
 
