@@ -9,7 +9,7 @@ namespace SnD.Sdk.Storage.Minio;
 /// <summary>
 /// Extension methods for Minio API.
 /// </summary>
-public static class MinioApiExtension
+public static class MinioApiExtensions
 {
     /// <summary>
     /// Applies a timeout retry policy to the specified asynchronous method.
@@ -25,15 +25,13 @@ public static class MinioApiExtension
         CancellationToken cancellationToken = default)
     {
         var policy = Policy.Handle<TaskCanceledException>()
-            .WaitAndRetryAsync(
-                retryCount: int.Parse(
-                    Environment.GetEnvironmentVariable("PROTEUS__MINIO_TIMEOUT_RETRY_COUNT") ?? "3"),
+            .WaitAndRetryAsync(int.Parse(Environment.GetEnvironmentVariable("PROTEUS__MINIO_TIMEOUT_RETRY_COUNT") ?? "3"),
                 sleepDurationProvider: (_, ex) =>
                 {
-                    var defaultRetry = Environment.GetEnvironmentVariable("PROTEUS__MINIO_TIMEOUT_RETRY_INTERVAL") ??
-                                       "3";
+                    var initialRetryInterval = Environment.GetEnvironmentVariable("PROTEUS__MINIO_TIMEOUT_INITIAL_RETRY_INTERVAL") ??
+                                       "1";
 
-                    return TimeSpan.FromSeconds(int.Parse(defaultRetry));
+                    return TimeSpan.FromSeconds(Math.Pow(2, int.Parse(initialRetryInterval)));
                 },
                 onRetryAsync: (exception, retryCount, context) =>
                 {
