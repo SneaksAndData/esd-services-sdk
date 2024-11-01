@@ -728,7 +728,7 @@ namespace Snd.Sdk.Kubernetes
                     onRetryAsync: (exception, span, _, _) =>
                     {
                         retryLogger.LogWarning(exception,
-                            "Server-side or transport error occured when calling the API Server. Will retry in {retryInSeconds} seconds",
+                            "Server-side or transport error occured when calling the API Server. Will retry in {retryInSeconds} seconds.",
                             span.TotalSeconds);
                         return Task.CompletedTask;
                     });

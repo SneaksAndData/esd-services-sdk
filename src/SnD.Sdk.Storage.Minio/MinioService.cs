@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Minio;
 using Minio.DataModel;
 using SnD.Sdk.Storage.Minio.Base;
@@ -13,15 +15,18 @@ namespace SnD.Sdk.Storage.Minio;
 /// </summary>
 public class MinioService : IMinioService
 {
+    protected readonly ILogger<MinioService> logger;
     private readonly IMinioClient minioClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MinioService"/> class.
     /// </summary>
     /// <param name="minioClient">The Minio client to be used for storage operations.</param>
-    public MinioService(IMinioClient minioClient)
+    /// <param name="logger">The logger used for logging Minio operations.</param>
+    public MinioService(IMinioClient minioClient, ILogger<MinioService> logger)
     {
         this.minioClient = minioClient;
+        this.logger = logger;
     }
 
 
@@ -43,17 +48,17 @@ public class MinioService : IMinioService
     /// </summary>
     /// <param name="bucketName">The name of the bucket where the object is stored.</param>
     /// <param name="objectName">The name of the object to read.</param>
+    /// <param name="cancellationToken">An optional cancellation token to cancel the operation.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation, which upon completion returns a <see cref="Stream"/> containing the object's content.</returns>
-    public async Task<Stream> ReadObjectAsync(string bucketName, string objectName)
+    public async Task<Stream> ReadObjectAsync(string bucketName, string objectName,
+        CancellationToken cancellationToken = default)
     {
         var memoryStream = new MemoryStream();
-        await minioClient.GetObjectAsync(new GetObjectArgs()
+        var minioApiCall = (CancellationToken ct) => minioClient.GetObjectAsync(new GetObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName)
-            .WithCallbackStream(stream =>
-            {
-                stream.CopyTo(memoryStream);
-            }));
+            .WithCallbackStream(stream => { stream.CopyTo(memoryStream); }), ct);
+        await minioApiCall.WithTimeoutRetryPolicy(logger, cancellationToken);
         memoryStream.Position = 0;
         return memoryStream;
     }
