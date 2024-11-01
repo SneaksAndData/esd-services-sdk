@@ -27,7 +27,7 @@ public interface IMinioService
     /// <param name="objectName">The name of the object to read.</param>
     /// <param name="cancellationToken">An optional cancellation token to cancel the operation.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation, which upon completion returns a <see cref="Stream"/> containing the object's content.</returns>
-    Task<Stream> ReadObjectAsync(string bucketName, string objectName,  CancellationToken cancellationToken);
+    Task<Stream> ReadObjectAsync(string bucketName, string objectName, CancellationToken cancellationToken);
 
     /// <summary>
     ///  Sets notification configuration for a given bucket

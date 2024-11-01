@@ -22,10 +22,10 @@ public static class MinioApiExtension
     /// <param name="cancellationToken">An optional cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, which produces the result of the wrapped asynchronous method.</returns>
     public static async Task<TResult> WithTimeoutRetryPolicy<TResult, TCaller>(this Func<CancellationToken, Task<TResult>> asyncMethod,
-        ILogger< TCaller> retryLogger,
+        ILogger<TCaller> retryLogger,
         CancellationToken cancellationToken = default)
     {
-        var policy =Policy.Handle<TaskCanceledException>()
+        var policy = Policy.Handle<TaskCanceledException>()
             .WaitAndRetryAsync(
                 retryCount: int.Parse(
                     Environment.GetEnvironmentVariable("PROTEUS__MINIO_TIMEOUT_RETRY_COUNT") ?? "3"),

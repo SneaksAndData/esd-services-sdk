@@ -50,7 +50,7 @@ public class MinioService : IMinioService
     public async Task<Stream> ReadObjectAsync(string bucketName, string objectName, CancellationToken cancellationToken = default)
     {
         var memoryStream = new MemoryStream();
-        var minioApiCall = (CancellationToken ct)  => minioClient.GetObjectAsync(new GetObjectArgs()
+        var minioApiCall = (CancellationToken ct) => minioClient.GetObjectAsync(new GetObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName)
             .WithCallbackStream(stream =>
