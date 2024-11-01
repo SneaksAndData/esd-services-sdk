@@ -17,7 +17,6 @@ public static class MinioApiExtension
     /// <typeparam name="TResult">The type of the result produced by the asynchronous method.</typeparam>
     /// <typeparam name="TCaller">The type of the caller, used for logging purposes.</typeparam>
     /// <param name="asyncMethod">The asynchronous method to which the retry policy will be applied.</param>
-    /// <param name="retryPolicy">The retry policy to apply.</param>
     /// <param name="retryLogger">The logger used to log retry attempts.</param>
     /// <param name="cancellationToken">An optional cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, which produces the result of the wrapped asynchronous method.</returns>

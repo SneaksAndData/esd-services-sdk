@@ -46,17 +46,16 @@ public class MinioService : IMinioService
     /// </summary>
     /// <param name="bucketName">The name of the bucket where the object is stored.</param>
     /// <param name="objectName">The name of the object to read.</param>
+    /// <param name="cancellationToken">An optional cancellation token to cancel the operation.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation, which upon completion returns a <see cref="Stream"/> containing the object's content.</returns>
-    public async Task<Stream> ReadObjectAsync(string bucketName, string objectName, CancellationToken cancellationToken = default)
+    public async Task<Stream> ReadObjectAsync(string bucketName, string objectName,
+        CancellationToken cancellationToken = default)
     {
         var memoryStream = new MemoryStream();
         var minioApiCall = (CancellationToken ct) => minioClient.GetObjectAsync(new GetObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName)
-            .WithCallbackStream(stream =>
-            {
-                stream.CopyTo(memoryStream);
-            }), ct);
+            .WithCallbackStream(stream => { stream.CopyTo(memoryStream); }), ct);
         await minioApiCall.WithTimeoutRetryPolicy(logger, cancellationToken);
         memoryStream.Position = 0;
         return memoryStream;
