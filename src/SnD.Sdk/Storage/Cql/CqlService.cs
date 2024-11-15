@@ -156,7 +156,17 @@ namespace Snd.Sdk.Storage.Cql
                     return true;
                 }, exception =>
                 {
-                    this.logger.LogError(exception, "Failed to create the entity");
+                    if (exception is NoHostAvailableException noHostAvailableException)
+                    {
+                        foreach (var error in noHostAvailableException.Errors)
+                        {
+                            this.logger.LogError("Host {Host} failed with error: {Error}", error.Key, error.Value);
+                        }
+                    }
+                    else
+                    {
+                        this.logger.LogError(exception, "Failed to create the entity");
+                    }
                     return false;
                 });
         }
@@ -176,7 +186,17 @@ namespace Snd.Sdk.Storage.Cql
                 .Select((batch, i) => ExecuteBatch(batch, i, rateLimit, rateLimitPeriod, cancellationToken)))
                 .TryMap(results => results.All(r => r), exception =>
                 {
-                    this.logger.LogError(exception, "Failed to insert batch");
+                    if (exception is NoHostAvailableException noHostAvailableException)
+                    {
+                        foreach (var error in noHostAvailableException.Errors)
+                        {
+                            this.logger.LogError("Host {Host} failed with error: {Error}", error.Key, error.Value);
+                        }
+                    }
+                    else
+                    {
+                        this.logger.LogError(exception, "Failed to insert batch");
+                    }
                     return false;
                 });
         }
