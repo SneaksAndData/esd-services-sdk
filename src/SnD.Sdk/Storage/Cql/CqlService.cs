@@ -160,7 +160,7 @@ namespace Snd.Sdk.Storage.Cql
                     {
                         foreach (var error in noHostAvailableException.Errors)
                         {
-                            this.logger.LogError("Host {Host} failed with error: {Error}", error.Key, error.Value);
+                            this.logger.LogError("Failed to create the entity: Host {Host} failed with error: {Error}", error.Key, error.Value);
                         }
                     }
                     else
@@ -190,7 +190,7 @@ namespace Snd.Sdk.Storage.Cql
                     {
                         foreach (var error in noHostAvailableException.Errors)
                         {
-                            this.logger.LogError("Host {Host} failed with error: {Error}", error.Key, error.Value);
+                            this.logger.LogError("Failed to insert batch: Host {Host} failed with error: {Error}", error.Key, error.Value);
                         }
                     }
                     else

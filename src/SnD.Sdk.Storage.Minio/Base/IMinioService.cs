@@ -37,5 +37,15 @@ public interface IMinioService
     /// <param name="events"></param>
     /// <returns></returns>
     Task SetRedisBucketNotificationAsync(string bucketName, string redisQueueArn, List<BucketEvent> events);
+
+    /// <summary>
+    /// Asynchronously reads the first specified number of bytes from an object in a Minio bucket.
+    /// </summary>
+    /// <param name="bucketName">The name of the bucket where the object is stored.</param>
+    /// <param name="objectName">The name of the object to read.</param>
+    /// <param name="numberOfBytes">The number of bytes to read from the object.</param>
+    /// <param name="cancellationToken">An optional cancellation token to cancel the operation.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, which upon completion returns a <see cref="Stream"/> containing the first bytes of the object's content.</returns>
+    Task<Stream> ReadObjectFirstBytesAsync(string bucketName, string objectName, int numberOfBytes, CancellationToken cancellationToken = default);
 }
 
