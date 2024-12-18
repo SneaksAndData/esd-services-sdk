@@ -32,7 +32,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
         this.logger = logger;
     }
 
-    private Task<GetQueueUrlResponse> GetQueueUrlAsync(string queueName,  CancellationToken cancellationToken = default)
+    private Task<GetQueueUrlResponse> GetQueueUrlAsync(string queueName, CancellationToken cancellationToken = default)
     {
         return this.client.GetQueueUrlAsync(new GetQueueUrlRequest
         {
@@ -41,7 +41,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     }
 
     /// <inheritdoc />
-    public Task<AmazonSqsSendResponse> SendQueueMessage(string queueName, string messageText,  CancellationToken cancellationToken = default)
+    public Task<AmazonSqsSendResponse> SendQueueMessage(string queueName, string messageText, CancellationToken cancellationToken = default)
     {
         this.logger.LogDebug("Sending {messageText} to {queueName}", messageText, queueName);
 
@@ -79,7 +79,7 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     }
 
     /// <inheritdoc />
-    public Task<AmazonSqsReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId,  CancellationToken cancellationToken = default)
+    public Task<AmazonSqsReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
     {
         this.logger.LogDebug("Changing visibility of {messageId} from {queueName}", messageId, queueName);
         return this.client

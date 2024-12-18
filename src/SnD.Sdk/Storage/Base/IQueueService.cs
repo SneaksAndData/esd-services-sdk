@@ -28,7 +28,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="queueName">Name of a queue.</param> 
         /// <param name="messageText">Message content</param>
         /// <returns></returns>
-        Task<TSendResponse> SendQueueMessage(string queueName, string messageText,  CancellationToken cancellationToken = default);
+        Task<TSendResponse> SendQueueMessage(string queueName, string messageText, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes a message from a queue.
