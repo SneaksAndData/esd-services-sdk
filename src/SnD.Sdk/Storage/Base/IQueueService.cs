@@ -1,6 +1,7 @@
 ﻿using Akka;
 using Akka.Streams.Dsl;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Snd.Sdk.Storage.Models;
 
@@ -27,7 +28,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="queueName">Name of a queue.</param> 
         /// <param name="messageText">Message content</param>
         /// <returns></returns>
-        Task<TSendResponse> SendQueueMessage(string queueName, string messageText);
+        Task<TSendResponse> SendQueueMessage(string queueName, string messageText,  CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes a message from a queue.
@@ -36,7 +37,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="receiptId">Pop receipt for the message</param>
         /// <param name="messageId">Identifier of the message</param>
         /// <returns>Result of the operation as boolean.</returns>
-        Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId);
+        Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId, CancellationToken cancelaltionToken = default);
 
         /// <summary>
         /// Updates message visibility timeout to 0, unhiding it from consumers.
@@ -45,6 +46,7 @@ namespace Snd.Sdk.Storage.Base
         /// <param name="receiptId">Pop receipt for the message</param>
         /// <param name="messageId">Identifier of the message</param>
         /// <returns></returns>
-        Task<TReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId);
+        Task<TReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default);
+
     }
 }
