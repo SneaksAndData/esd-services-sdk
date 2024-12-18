@@ -5,6 +5,7 @@ using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
 using Snd.Sdk.Tasks;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Snd.Sdk.Storage.Base;
 using Snd.Sdk.Storage.Models;
@@ -48,10 +49,10 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<QueueReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId)
+        public Task<QueueReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
         {
             this.logger.LogDebug("Changing visibility of {messageId} from {queueName} of account {queueAccount}", messageId, queueName, this.queueServiceClient.AccountName);
-            return this.queueServiceClient.GetQueueClient(queueName).UpdateMessageAsync(messageId: messageId, popReceipt: receiptId, visibilityTimeout: TimeSpan.FromSeconds(0))
+            return this.queueServiceClient.GetQueueClient(queueName).UpdateMessageAsync(messageId: messageId, popReceipt: receiptId, visibilityTimeout: TimeSpan.FromSeconds(0), cancellationToken: cancellationToken)
                 .Map(result => new QueueReleaseResponse
                 {
                     MessageId = messageId,
@@ -61,14 +62,14 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId)
+        public Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
         {
             this.logger.LogDebug("Removing {messageId} from {queueName} of account {queueAccount}", messageId, queueName, this.queueServiceClient.AccountName);
-            return this.queueServiceClient.GetQueueClient(queueName).DeleteMessageAsync(messageId, receiptId).Map(result => result.Status == 200);
+            return this.queueServiceClient.GetQueueClient(queueName).DeleteMessageAsync(messageId, receiptId, cancellationToken).Map(result => result.Status == 200);
         }
 
         /// <inheritdoc />
-        public Task<QueueSendResponse> SendQueueMessage(string queueName, string messageText)
+        public Task<QueueSendResponse> SendQueueMessage(string queueName, string messageText, CancellationToken cancellationToken = default)
         {
             this.logger.LogDebug("Sending {messageText} to {queueName} of account {queueAccount}", messageText, queueName, this.queueServiceClient.AccountName);
             return this.queueServiceClient.GetQueueClient(queueName).SendMessageAsync(messageText).Map(result => new QueueSendResponse
