@@ -49,10 +49,10 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<QueueReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId, CancellationToken cancelaltionToken = default)
+        public Task<QueueReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
         {
             this.logger.LogDebug("Changing visibility of {messageId} from {queueName} of account {queueAccount}", messageId, queueName, this.queueServiceClient.AccountName);
-            return this.queueServiceClient.GetQueueClient(queueName).UpdateMessageAsync(messageId: messageId, popReceipt: receiptId, visibilityTimeout: TimeSpan.FromSeconds(0), cancellationToken: cancelaltionToken)
+            return this.queueServiceClient.GetQueueClient(queueName).UpdateMessageAsync(messageId: messageId, popReceipt: receiptId, visibilityTimeout: TimeSpan.FromSeconds(0), cancellationToken: cancellationToken)
                 .Map(result => new QueueReleaseResponse
                 {
                     MessageId = messageId,
@@ -62,17 +62,17 @@ namespace Snd.Sdk.Storage.Azure
         }
 
         /// <inheritdoc />
-        public Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId, CancellationToken cancelaltionToken = default)
+        public Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
         {
             this.logger.LogDebug("Removing {messageId} from {queueName} of account {queueAccount}", messageId, queueName, this.queueServiceClient.AccountName);
-            return this.queueServiceClient.GetQueueClient(queueName).DeleteMessageAsync(messageId, receiptId, cancelaltionToken).Map(result => result.Status == 200);
+            return this.queueServiceClient.GetQueueClient(queueName).DeleteMessageAsync(messageId, receiptId, cancellationToken).Map(result => result.Status == 200);
         }
 
         /// <inheritdoc />
-        public Task<QueueSendResponse> SendQueueMessage(string queueName, string messageText, CancellationToken cancelaltionToken = default)
+        public Task<QueueSendResponse> SendQueueMessage(string queueName, string messageText, CancellationToken cancellationToken = default)
         {
             this.logger.LogDebug("Sending {messageText} to {queueName} of account {queueAccount}", messageText, queueName, this.queueServiceClient.AccountName);
-            return this.queueServiceClient.GetQueueClient(queueName).SendMessageAsync(messageText, cancelaltionToken).Map(result => new QueueSendResponse
+            return this.queueServiceClient.GetQueueClient(queueName).SendMessageAsync(messageText).Map(result => new QueueSendResponse
             {
                 MessageId = result.Value.MessageId,
                 DeleteHandle = result.Value.PopReceipt,
