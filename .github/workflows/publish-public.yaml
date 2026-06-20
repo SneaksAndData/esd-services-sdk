@@ -28,7 +28,7 @@ jobs:
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Storage.Minio/SnD.Sdk.Storage.Minio.csproj
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.Sdk.Extensions.Environment/SnD.Sdk.Extensions.Environment.csproj
       - name: Import Secrets
-        uses: hashicorp/vault-action@v2.7.3
+        uses: hashicorp/vault-action@v3.0.0
         with:
           url: https://hashicorp-vault.production.sneaksanddata.com/
           role: github
