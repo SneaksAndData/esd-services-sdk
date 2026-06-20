@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Akka;
 using Akka.Streams.Dsl;
@@ -31,25 +32,25 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
         this.logger = logger;
     }
 
-    private Task<GetQueueUrlResponse> GetQueueUrlAsync(string queueName)
+    private Task<GetQueueUrlResponse> GetQueueUrlAsync(string queueName, CancellationToken cancellationToken = default)
     {
         return this.client.GetQueueUrlAsync(new GetQueueUrlRequest
         {
             QueueName = queueName
-        });
+        }, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<AmazonSqsSendResponse> SendQueueMessage(string queueName, string messageText)
+    public Task<AmazonSqsSendResponse> SendQueueMessage(string queueName, string messageText, CancellationToken cancellationToken = default)
     {
         this.logger.LogDebug("Sending {messageText} to {queueName}", messageText, queueName);
 
         var messageRequest = new SendMessageRequest()
         {
-            QueueUrl = GetQueueUrlAsync(queueName).GetAwaiter().GetResult().QueueUrl,
+            QueueUrl = GetQueueUrlAsync(queueName, cancellationToken).GetAwaiter().GetResult().QueueUrl,
             MessageBody = messageText
         };
-        return this.client.SendMessageAsync(messageRequest).Map(result => new AmazonSqsSendResponse
+        return this.client.SendMessageAsync(messageRequest, cancellationToken).Map(result => new AmazonSqsSendResponse
         { MessageId = result.MessageId, SequenceNumber = result.SequenceNumber });
     }
 
@@ -78,25 +79,25 @@ public class AmazonSqsService : IQueueService<AmazonSqsSendResponse, AmazonSqsRe
     }
 
     /// <inheritdoc />
-    public Task<AmazonSqsReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId)
+    public Task<AmazonSqsReleaseResponse> ReleaseMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
     {
         this.logger.LogDebug("Changing visibility of {messageId} from {queueName}", messageId, queueName);
         return this.client
-            .ChangeMessageVisibilityAsync(GetQueueUrlAsync(queueName).GetAwaiter().GetResult().QueueUrl, receiptId, 0)
+            .ChangeMessageVisibilityAsync(GetQueueUrlAsync(queueName, cancellationToken).GetAwaiter().GetResult().QueueUrl, receiptId, 0, cancellationToken)
             .Map(result => new AmazonSqsReleaseResponse
             { MessageId = messageId, Success = result.HttpStatusCode == System.Net.HttpStatusCode.OK });
     }
 
     /// <inheritdoc />
-    public Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId)
+    public Task<bool> RemoveQueueMessage(string queueName, string receiptId, string messageId, CancellationToken cancellationToken = default)
     {
         var delRequest = new DeleteMessageRequest
         {
-            QueueUrl = GetQueueUrlAsync(queueName).GetAwaiter().GetResult().QueueUrl,
+            QueueUrl = GetQueueUrlAsync(queueName, cancellationToken).GetAwaiter().GetResult().QueueUrl,
             ReceiptHandle = receiptId
         };
         this.logger.LogDebug("Removing {messageId} from {queueName}", messageId, queueName);
-        return this.client.DeleteMessageAsync(delRequest)
+        return this.client.DeleteMessageAsync(delRequest, cancellationToken)
             .Map(result => result.HttpStatusCode == System.Net.HttpStatusCode.OK);
     }
 }
